@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "831378661778",
+    "project_id": "try-roop",
+    "storage_bucket": "try-roop.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:831378661778:android:1cb6595887cbb3dc4fa14b",
+        "android_client_info": {
+          "package_name": "com.tryroop.tryroop_campus_live_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQvZKECVdDSmaKKHPES6IlOvzI4jxpHh8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

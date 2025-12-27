@@ -1,0 +1,58 @@
+version: '3'
+
+vars:
+  FLUTTER: /Users/ichinomiya/Downloads/flutter/bin/flutter
+  DEVICE: mingle
+
+tasks:
+  default:
+    desc: タスク一覧を表示
+    cmds:
+      - task --list
+
+  run:
+    desc: アプリを起動
+    cmds:
+      - '{{.FLUTTER}} run -d {{.DEVICE}}'
+
+  stop:
+    desc: 実行中のFlutterプロセスを停止
+    cmds:
+      - pkill -f "flutter run" || true
+
+  restart:
+    desc: アプリを再起動
+    cmds:
+      - task: stop
+      - task: run
+
+  devices:
+    desc: 利用可能なデバイス一覧
+    cmds:
+      - '{{.FLUTTER}} devices'
+
+  clean:
+    desc: ビルドキャッシュをクリア
+    cmds:
+      - '{{.FLUTTER}} clean'
+      - '{{.FLUTTER}} pub get'
+
+  analyze:
+    desc: コードを静的解析
+    cmds:
+      - '{{.FLUTTER}} analyze'
+
+  test:
+    desc: テストを実行
+    cmds:
+      - '{{.FLUTTER}} test'
+
+  build:ios:
+    desc: iOS用にビルド
+    cmds:
+      - '{{.FLUTTER}} build ios'
+
+  deps:
+    desc: 依存パッケージをインストール
+    cmds:
+      - '{{.FLUTTER}} pub get'
