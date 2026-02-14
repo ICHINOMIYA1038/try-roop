@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../config/feature_flags.dart';
 import '../../models/bookmark.dart';
 import '../../providers/providers.dart';
 
@@ -61,6 +62,11 @@ class _BookmarkList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Show coming soon for video bookmarks when video content is disabled
+    if (targetType == BookmarkTargetType.video && !FeatureFlags.isVideoContentEnabled) {
+      return const _VideoComingSoonPlaceholder();
+    }
+
     final bookmarksAsync = ref.watch(userBookmarksProvider(targetType));
 
     return bookmarksAsync.when(
@@ -253,5 +259,53 @@ class _BookmarkItem extends ConsumerWidget {
           error: (_, __) => const SizedBox.shrink(),
         );
     }
+  }
+}
+
+/// Placeholder widget for video section when video content is coming soon
+class _VideoComingSoonPlaceholder extends StatelessWidget {
+  const _VideoComingSoonPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF8A3D).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.video_library_outlined,
+                size: 48,
+                color: Color(0xFFFF8A3D),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              '動画コンテンツ準備中',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF433D39),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'もうしばらくお待ちください',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

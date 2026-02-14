@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../config/feature_flags.dart';
 import '../../providers/providers.dart';
 import '../../models/video.dart';
 import '../../models/category.dart';
@@ -299,7 +300,11 @@ class _AllVideosTab extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(vertical: 20),
           children: [
             // Free Videos Section
-            if (freeVideos.isNotEmpty) ...[
+            if (!FeatureFlags.isVideoContentEnabled) ...[
+              // Coming Soon placeholder for video content
+              const _VideoComingSoonSection(),
+              const SizedBox(height: 24),
+            ] else if (freeVideos.isNotEmpty) ...[
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
@@ -395,8 +400,8 @@ class _AllVideosTab extends ConsumerWidget {
             // Events Section
             _buildEventsSection(context, eventsAsync),
 
-            // Premium Videos Section
-            if (premiumVideos.isNotEmpty) ...[
+            // Premium Videos Section (only show when video content is enabled)
+            if (FeatureFlags.isVideoContentEnabled && premiumVideos.isNotEmpty) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
@@ -784,6 +789,14 @@ class _CategoryVideosTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Show coming soon when video content is disabled
+    if (!FeatureFlags.isVideoContentEnabled) {
+      return const SingleChildScrollView(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: _VideoComingSoonSection(),
+      );
+    }
+
     final videosAsync = ref.watch(videosProvider);
 
     return videosAsync.when(
@@ -841,6 +854,98 @@ class _CategoryVideosTab extends ConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
+    );
+  }
+}
+
+/// Widget to display when video content is coming soon
+class _VideoComingSoonSection extends StatelessWidget {
+  const _VideoComingSoonSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFFFF8A3D).withOpacity(0.08),
+              const Color(0xFFFF6B35).withOpacity(0.04),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: const Color(0xFFFF8A3D).withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF8A3D).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.video_library_outlined,
+                size: 48,
+                color: Color(0xFFFF8A3D),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              '動画コンテンツ準備中',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF433D39),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'オリジナル動画コンテンツを\n鋭意制作中です。\nもうしばらくお待ちください！',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.6,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF8A3D).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.notifications_active_outlined,
+                    size: 16,
+                    color: Color(0xFFFF8A3D),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Coming Soon',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFFF8A3D),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
