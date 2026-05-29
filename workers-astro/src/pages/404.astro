@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="ページが見つかりません">
+<style>
+.not-found{
+  text-align:center;
+  padding:120px 28px 100px;
+}
+.not-found .code{
+  font-size:5rem;font-weight:700;
+  background:linear-gradient(135deg, var(--brand), #f0a06a);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  line-height:1;
+}
+.not-found h1{
+  margin-top:16px;
+  font-family:'Klee One','Zen Maru Gothic',serif;
+  font-size:1.5rem;font-weight:600;
+}
+.not-found p{
+  margin-top:12px;color:var(--text-muted);font-size:0.9rem;
+}
+.not-found .back{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:32px;padding:12px 28px;
+  border-radius:999px;
+  background:var(--brand);color:#fff;
+  font-weight:600;font-size:0.875rem;
+  transition:background 0.2s;
+}
+.not-found .back:hover{background:var(--brand-dark)}
+</style>
+
+<main class="not-found">
+  <div class="code">404</div>
+  <h1>ページが見つかりません</h1>
+  <p>お探しのページは移動または削除された可能性があります。</p>
+  <a href="/" class="back">&larr; トップに戻る</a>
+</main>
+</Base>

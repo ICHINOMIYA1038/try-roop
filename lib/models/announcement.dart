@@ -1,3 +1,4 @@
+import 'package:tryroop_campus_live_flutter/utils/firestore_helpers.dart';
 class Announcement {
   final String id;
   final String title;
@@ -22,7 +23,7 @@ class Announcement {
       content: map['content'] ?? '',
       imageUrl: map['imageUrl'],
       isPublished: map['isPublished'] ?? false,
-      createdAt: DateTime.parse(map['createdAt']),
+      createdAt: parseDateTime(map['createdAt']),
     );
   }
 

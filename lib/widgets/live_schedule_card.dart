@@ -130,6 +130,38 @@ class LiveScheduleCard extends StatelessWidget {
   }
 }
 
+/// 「ライブの予定はありません」を出すための空状態ウィジェット。
+/// LiveScheduleCard を一覧表示するセクションでスケジュールが空だったときに使う。
+class LiveScheduleEmptyState extends StatelessWidget {
+  const LiveScheduleEmptyState({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.event_busy_outlined,
+            size: 32,
+            color: Colors.grey[500],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'ライブの予定はありません',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class LiveScheduleCardCompact extends StatelessWidget {
   final LiveSchedule schedule;
   final VoidCallback? onTap;

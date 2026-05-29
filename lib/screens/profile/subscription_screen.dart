@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
+import '../../config/legal_urls.dart';
 import '../../providers/providers.dart';
 
 class SubscriptionScreen extends ConsumerStatefulWidget {
@@ -217,6 +218,29 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 color: Colors.grey[500],
                 fontSize: 12,
               ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () =>
+                      openExternalUrl(context, LegalUrls.termsOfService),
+                  child: const Text(
+                    '利用規約',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+                Text('・', style: TextStyle(color: Colors.grey[500])),
+                TextButton(
+                  onPressed: () =>
+                      openExternalUrl(context, LegalUrls.privacyPolicy),
+                  child: const Text(
+                    'プライバシーポリシー',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -1,3 +1,4 @@
+import 'package:tryroop_campus_live_flutter/utils/firestore_helpers.dart';
 class UserStats {
   final String id;
   final String? bio;
@@ -31,9 +32,9 @@ class UserStats {
       badgeIds: List<String>.from(map['badgeIds'] ?? []),
       consecutiveDays: map['consecutiveDays'] ?? 0,
       lastActiveAt: map['lastActiveAt'] != null
-          ? DateTime.parse(map['lastActiveAt'])
+          ? parseDateTime(map['lastActiveAt'])
           : null,
-      updatedAt: DateTime.parse(map['updatedAt']),
+      updatedAt: parseDateTime(map['updatedAt']),
     );
   }
 

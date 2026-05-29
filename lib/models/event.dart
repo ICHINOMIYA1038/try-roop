@@ -1,3 +1,4 @@
+import 'package:tryroop_campus_live_flutter/utils/firestore_helpers.dart';
 enum EventType {
   online,
   offline,
@@ -57,8 +58,8 @@ class Event {
         (e) => e.name == map['eventType'],
         orElse: () => EventType.offline,
       ),
-      startAt: DateTime.parse(map['startAt']),
-      endAt: DateTime.parse(map['endAt']),
+      startAt: parseDateTime(map['startAt']),
+      endAt: parseDateTime(map['endAt']),
       capacity: map['capacity'] ?? 0,
       currentParticipants: map['currentParticipants'] ?? 0,
       location: map['location'],
@@ -70,10 +71,10 @@ class Event {
       ),
       requiresRegistration: map['requiresRegistration'] ?? true,
       registrationDeadline: map['registrationDeadline'] != null
-          ? DateTime.parse(map['registrationDeadline'])
+          ? parseDateTime(map['registrationDeadline'])
           : null,
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      createdAt: parseDateTime(map['createdAt']),
+      updatedAt: parseDateTime(map['updatedAt']),
     );
   }
 

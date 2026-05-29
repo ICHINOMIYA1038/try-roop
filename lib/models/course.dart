@@ -1,3 +1,4 @@
+import 'package:tryroop_campus_live_flutter/utils/firestore_helpers.dart';
 class Course {
   final String id;
   final String title;
@@ -42,8 +43,8 @@ class Course {
         orElse: () => CourseDifficulty.beginner,
       ),
       isPublished: map['isPublished'] ?? false,
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      createdAt: parseDateTime(map['createdAt']),
+      updatedAt: parseDateTime(map['updatedAt']),
     );
   }
 

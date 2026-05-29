@@ -1,0 +1,46 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+<Base title={post.data.title} description={post.data.description}>
+<style>
+.article{max-width:768px;margin:0 auto;padding:60px 24px 80px}
+.article-header{margin-bottom:40px}
+.article-header h1{font-size:2rem;font-weight:700;line-height:1.4}
+.article-meta{margin-top:12px;font-size:0.875rem;color:var(--text-muted);display:flex;gap:12px;align-items:center}
+.tag{background:var(--card);border:1px solid var(--border);padding:2px 8px;border-radius:4px;font-size:0.6875rem}
+.article-body h2{font-size:1.5rem;font-weight:700;margin-top:40px}
+.article-body h3{font-size:1.25rem;font-weight:700;margin-top:32px}
+.article-body p{margin-top:16px}
+.article-body ul,.article-body ol{margin-top:16px;padding-left:24px;display:flex;flex-direction:column;gap:8px}
+.article-body blockquote{margin-top:16px;padding:16px 24px;border-left:3px solid var(--brand);background:var(--card);border-radius:0 8px 8px 0}
+.article-body code{background:var(--card);padding:2px 6px;border-radius:4px;font-size:0.875em}
+.article-body pre{margin-top:16px;padding:16px;background:var(--text);color:#f0f0f0;border-radius:8px;overflow-x:auto}
+.article-body pre code{background:none;padding:0}
+.article-body img{margin-top:16px;max-width:100%;border-radius:8px}
+.article-body a{color:var(--brand);text-decoration:underline}
+.back{display:inline-block;margin-top:40px;color:var(--brand);font-size:0.875rem}
+</style>
+
+<article class="article">
+  <header class="article-header">
+    <h1>{post.data.title}</h1>
+    <div class="article-meta">
+      <time>{post.data.date.toLocaleDateString('ja-JP')}</time>
+      {post.data.tags.map((tag: string) => <span class="tag">{tag}</span>)}
+    </div>
+  </header>
+  <div class="article-body">
+    <Content />
+  </div>
+  <a href="/blog" class="back">&larr; ブログ一覧に戻る</a>
+</article>
+</Base>

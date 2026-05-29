@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -6,20 +7,25 @@ import 'firebase_options.dart';
 import 'router.dart';
 import 'services/subscription_service.dart';
 
-// Global flag for demo mode (when Firebase is not configured)
-bool isDemoMode = true;
+// Demo mode is controlled at build time via --dart-define=DEMO_MODE=true.
+// Release builds default to false. Falls back to true at runtime only if
+// Firebase initialization fails in debug builds.
+bool isDemoMode = const bool.fromEnvironment('DEMO_MODE', defaultValue: false);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase (with error handling for demo mode)
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
   } catch (e) {
-    debugPrint('Firebase not configured, running in demo mode: $e');
-    isDemoMode = true;
+    if (kDebugMode) {
+      debugPrint('Firebase init failed, falling back to demo mode: $e');
+      isDemoMode = true;
+    } else {
+      rethrow;
+    }
   }
 
   // Initialize RevenueCat (skip in demo mode)
@@ -46,7 +52,7 @@ class MyApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'tryroop campus live',
+      title: 'TryRoop Campus',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

@@ -1,3 +1,4 @@
+import 'package:tryroop_campus_live_flutter/utils/firestore_helpers.dart';
 class AppUser {
   final String uid;
   final String email;
@@ -27,8 +28,8 @@ class AppUser {
         (e) => e.name == map['membershipType'],
         orElse: () => MembershipType.free,
       ),
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      createdAt: parseDateTime(map['createdAt']),
+      updatedAt: parseDateTime(map['updatedAt']),
     );
   }
 

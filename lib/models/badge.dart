@@ -1,3 +1,4 @@
+import 'package:tryroop_campus_live_flutter/utils/firestore_helpers.dart';
 class Badge {
   final String id;
   final String name;
@@ -22,7 +23,7 @@ class Badge {
       description: map['description'] ?? '',
       iconUrl: map['iconUrl'] ?? '',
       condition: BadgeCondition.fromMap(map['condition'] ?? {}),
-      createdAt: DateTime.parse(map['createdAt']),
+      createdAt: parseDateTime(map['createdAt']),
     );
   }
 

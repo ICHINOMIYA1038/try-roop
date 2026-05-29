@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../config/legal_urls.dart';
 import '../../providers/providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -394,25 +395,22 @@ class ProfileScreen extends ConsumerWidget {
                   _MenuItem(
                     icon: Icons.help_outline,
                     title: 'ヘルプ・お問い合わせ',
-                    onTap: () {
-                      // TODO: Navigate to help
-                    },
+                    onTap: () =>
+                        openExternalUrl(context, LegalUrls.supportContact),
                   ),
                   const _MenuDivider(),
                   _MenuItem(
                     icon: Icons.description_outlined,
                     title: '利用規約',
-                    onTap: () {
-                      // TODO: Navigate to terms
-                    },
+                    onTap: () =>
+                        openExternalUrl(context, LegalUrls.termsOfService),
                   ),
                   const _MenuDivider(),
                   _MenuItem(
                     icon: Icons.privacy_tip_outlined,
                     title: 'プライバシーポリシー',
-                    onTap: () {
-                      // TODO: Navigate to privacy policy
-                    },
+                    onTap: () =>
+                        openExternalUrl(context, LegalUrls.privacyPolicy),
                   ),
                 ],
               ),

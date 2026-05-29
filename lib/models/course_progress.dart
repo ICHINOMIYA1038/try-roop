@@ -1,3 +1,4 @@
+import 'package:tryroop_campus_live_flutter/utils/firestore_helpers.dart';
 class CourseProgress {
   final String id;
   final String userId;
@@ -28,9 +29,9 @@ class CourseProgress {
       progressPercent: (map['progressPercent'] ?? 0).toDouble(),
       isCompleted: map['isCompleted'] ?? false,
       completedAt: map['completedAt'] != null
-          ? DateTime.parse(map['completedAt'])
+          ? parseDateTime(map['completedAt'])
           : null,
-      updatedAt: DateTime.parse(map['updatedAt']),
+      updatedAt: parseDateTime(map['updatedAt']),
     );
   }
 

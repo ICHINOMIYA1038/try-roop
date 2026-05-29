@@ -1,3 +1,4 @@
+import 'package:tryroop_campus_live_flutter/utils/firestore_helpers.dart';
 class Comment {
   final String id;
   final CommentTargetType targetType;
@@ -39,8 +40,8 @@ class Comment {
       content: map['content'] ?? '',
       likeCount: map['likeCount'] ?? 0,
       parentId: map['parentId'],
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      createdAt: parseDateTime(map['createdAt']),
+      updatedAt: parseDateTime(map['updatedAt']),
     );
   }
 

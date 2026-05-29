@@ -1,5 +1,5 @@
 name: tryroop_campus_live_flutter
-description: "A new Flutter project."
+description: "TryRoop Campus Live — 学習動画とコミュニティのモバイルアプリ"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.0+7
 
 environment:
   sdk: ^3.10.3
@@ -42,6 +42,7 @@ dependencies:
 
   # Authentication
   google_sign_in: ^6.2.2
+  # iOS で Sign in with Apple が必須 (App Store Guideline 4.8) のため併設
   sign_in_with_apple: ^6.1.4
   crypto: ^3.0.6
 
@@ -64,6 +65,9 @@ dependencies:
   # Markdown
   flutter_markdown: ^0.7.4+3
 
+  # External URL launcher (used for Privacy Policy / Terms links)
+  url_launcher: ^6.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -74,6 +78,19 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  # Generates platform-specific app icons from a single source PNG.
+  # Run `dart run flutter_launcher_icons` after replacing
+  # assets/branding/icon-1024.png with the real logo.
+  flutter_launcher_icons: ^0.14.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/branding/icon-1024.png"
+  adaptive_icon_background: "#FF8A3D"
+  adaptive_icon_foreground: "assets/branding/icon-foreground-1024.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

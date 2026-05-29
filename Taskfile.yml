@@ -1,8 +1,23 @@
 version: '3'
 
+dotenv: ['.env']
+
 vars:
-  FLUTTER: /Users/ichinomiya/Downloads/flutter/bin/flutter
-  DEVICE: mingle
+  FLUTTER: flutter
+  DEVICE: iPhone
+  DART_DEFINES: >-
+    --dart-define=REVENUECAT_IOS_API_KEY=$REVENUECAT_IOS_API_KEY
+    --dart-define=REVENUECAT_ANDROID_API_KEY=$REVENUECAT_ANDROID_API_KEY
+  RELEASE_DART_DEFINES: >-
+    --dart-define=REVENUECAT_IOS_API_KEY=$REVENUECAT_IOS_API_KEY
+    --dart-define=REVENUECAT_ANDROID_API_KEY=$REVENUECAT_ANDROID_API_KEY
+  RELEASE_DEMO_DART_DEFINES: >-
+    --dart-define=DEMO_MODE=true
+    --dart-define=REVENUECAT_IOS_API_KEY=$REVENUECAT_IOS_API_KEY
+    --dart-define=REVENUECAT_ANDROID_API_KEY=$REVENUECAT_ANDROID_API_KEY
+  DEV_DART_DEFINES: >-
+    {{.DART_DEFINES}}
+    --dart-define=DEMO_MODE=true
 
 tasks:
   default:
@@ -11,9 +26,14 @@ tasks:
       - task --list
 
   run:
-    desc: アプリを起動
+    desc: アプリを起動 (デモモード ON)
     cmds:
-      - '{{.FLUTTER}} run -d {{.DEVICE}}'
+      - '{{.FLUTTER}} run -d {{.DEVICE}} {{.DEV_DART_DEFINES}}'
+
+  run:prod:
+    desc: アプリを起動 (デモモード OFF / Firebase 必須)
+    cmds:
+      - '{{.FLUTTER}} run -d {{.DEVICE}} {{.DART_DEFINES}}'
 
   stop:
     desc: 実行中のFlutterプロセスを停止
@@ -48,11 +68,46 @@ tasks:
       - '{{.FLUTTER}} test'
 
   build:ios:
-    desc: iOS用にビルド
+    desc: iOS リリースビルド (デモモード OFF)
     cmds:
-      - '{{.FLUTTER}} build ios'
+      - '{{.FLUTTER}} build ipa --release {{.RELEASE_DART_DEFINES}}'
+
+  build:ios:demo:
+    desc: iOS リリースビルド (デモモード ON / 審査用)
+    cmds:
+      - '{{.FLUTTER}} build ipa --release {{.RELEASE_DEMO_DART_DEFINES}}'
+
+  build:android:
+    desc: Android リリースビルド (App Bundle, デモモード OFF)
+    cmds:
+      - '{{.FLUTTER}} build appbundle --release {{.RELEASE_DART_DEFINES}}'
 
   deps:
     desc: 依存パッケージをインストール
     cmds:
       - '{{.FLUTTER}} pub get'
+
+  # ==================== Web (LP / Privacy / Terms) ====================
+
+  web:dev:
+    desc: LP の開発サーバを起動 (http://localhost:3000)
+    dir: site
+    cmds:
+      - npm run dev
+
+  web:build:
+    desc: LP の静的ビルド (site/out へ出力)
+    dir: site
+    cmds:
+      - npm run build
+
+  web:deploy:
+    desc: LP を Firebase Hosting へデプロイ
+    cmds:
+      - firebase deploy --only hosting
+
+  web:install:
+    desc: LP の npm 依存をインストール
+    dir: site
+    cmds:
+      - npm install

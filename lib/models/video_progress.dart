@@ -1,3 +1,4 @@
+import 'package:tryroop_campus_live_flutter/utils/firestore_helpers.dart';
 class VideoProgress {
   final String id;
   final String uid;
@@ -22,7 +23,7 @@ class VideoProgress {
       videoId: map['videoId'] ?? '',
       currentTime: map['currentTime'] ?? 0,
       completed: map['completed'] ?? false,
-      updatedAt: DateTime.parse(map['updatedAt']),
+      updatedAt: parseDateTime(map['updatedAt']),
     );
   }
 

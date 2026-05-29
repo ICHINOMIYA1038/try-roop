@@ -1,3 +1,4 @@
+import 'package:tryroop_campus_live_flutter/utils/firestore_helpers.dart';
 class Like {
   final String id;
   final String userId;
@@ -22,7 +23,7 @@ class Like {
         orElse: () => LikeTargetType.post,
       ),
       targetId: map['targetId'] ?? '',
-      createdAt: DateTime.parse(map['createdAt']),
+      createdAt: parseDateTime(map['createdAt']),
     );
   }
 

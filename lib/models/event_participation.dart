@@ -1,3 +1,4 @@
+import 'package:tryroop_campus_live_flutter/utils/firestore_helpers.dart';
 enum ParticipationStatus {
   confirmed,
   waitlisted,
@@ -33,9 +34,9 @@ class EventParticipation {
         orElse: () => ParticipationStatus.confirmed,
       ),
       waitlistPosition: map['waitlistPosition'] ?? 0,
-      registeredAt: DateTime.parse(map['registeredAt']),
+      registeredAt: parseDateTime(map['registeredAt']),
       cancelledAt: map['cancelledAt'] != null
-          ? DateTime.parse(map['cancelledAt'])
+          ? parseDateTime(map['cancelledAt'])
           : null,
     );
   }

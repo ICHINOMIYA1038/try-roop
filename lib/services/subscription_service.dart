@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 class SubscriptionService {
-  // RevenueCat API Keys (replace with your actual keys)
-  static const String _apiKeyIOS = 'YOUR_REVENUECAT_IOS_API_KEY';
-  static const String _apiKeyAndroid = 'YOUR_REVENUECAT_ANDROID_API_KEY';
+  // RevenueCat API Keys (provided via --dart-define from .env at build time)
+  static const String _apiKeyIOS =
+      String.fromEnvironment('REVENUECAT_IOS_API_KEY');
+  static const String _apiKeyAndroid =
+      String.fromEnvironment('REVENUECAT_ANDROID_API_KEY');
 
   static String get _apiKey => Platform.isIOS ? _apiKeyIOS : _apiKeyAndroid;
 
@@ -13,11 +16,11 @@ class SubscriptionService {
 
   // Initialize RevenueCat
   static Future<void> init() async {
-    await Purchases.setLogLevel(LogLevel.debug);
+    await Purchases.setLogLevel(
+      kReleaseMode ? LogLevel.error : LogLevel.debug,
+    );
 
-    PurchasesConfiguration configuration;
-    configuration = PurchasesConfiguration(_apiKey);
-
+    final configuration = PurchasesConfiguration(_apiKey);
     await Purchases.configure(configuration);
   }
 

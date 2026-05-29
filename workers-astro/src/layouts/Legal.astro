@@ -1,0 +1,32 @@
+---
+import Base from './Base.astro';
+interface Props {
+  title: string;
+  effectiveDate: string;
+}
+const { title, effectiveDate } = Astro.props;
+---
+<Base title={title}>
+<style>
+.legal{padding:80px 28px;max-width:720px;margin:0 auto}
+.legal h1{
+  font-family:'Klee One','Zen Maru Gothic',serif;
+  font-size:1.75rem;font-weight:600;
+}
+.legal .date{
+  display:inline-block;margin-top:8px;
+  font-size:0.8125rem;color:var(--text-muted);
+  background:var(--brand-light);padding:3px 12px;border-radius:999px;
+}
+.legal h2{font-size:1.125rem;font-weight:700;margin-top:40px}
+.legal p{margin-top:16px;font-size:0.9375rem}
+.legal ul,.legal ol{margin-top:16px;padding-left:24px;display:flex;flex-direction:column;gap:8px;font-size:0.9375rem}
+.legal a{color:var(--brand);text-decoration:underline;text-underline-offset:3px}
+.legal a:hover{color:var(--brand-dark)}
+</style>
+<main class="legal">
+  <h1>{title}</h1>
+  <p><span class="date">施行日: {effectiveDate}</span></p>
+  <slot />
+</main>
+</Base>

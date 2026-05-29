@@ -235,12 +235,6 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                             itemBuilder: (context, index) {
                               return CommentTile(
                                 comment: comments[index],
-                                onReply: () {
-                                  // TODO: Reply functionality
-                                },
-                                onLike: () {
-                                  // TODO: Like comment
-                                },
                               );
                             },
                           );
