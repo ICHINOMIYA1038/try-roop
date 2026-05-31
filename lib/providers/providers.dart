@@ -23,6 +23,8 @@ import '../models/text_lesson.dart';
 import '../models/event.dart';
 import '../models/event_participation.dart';
 import '../services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../services/firestore_service.dart';
 import '../services/subscription_service.dart';
 
@@ -283,10 +285,37 @@ final userStatsProvider = StreamProvider<UserStats?>((ref) {
 
 // ==================== Subscription ====================
 
+// 期間限定で全ユーザーにプレミアム解放するためのグローバル設定。
+// Firestore の config/premium_unlock を参照し、enabled=true かつ
+// until (Timestamp) が未来であれば全員にプレミアム権限を付与する。
+final premiumGlobalUnlockProvider = StreamProvider<bool>((ref) {
+  if (isDemoMode) return Stream.value(false);
+  return FirebaseFirestore.instance
+      .collection('config')
+      .doc('premium_unlock')
+      .snapshots()
+      .map((doc) {
+    if (!doc.exists) return false;
+    final data = doc.data();
+    if (data == null) return false;
+    final enabled = data['enabled'] as bool? ?? false;
+    if (!enabled) return false;
+    final until = data['until'];
+    if (until is Timestamp) {
+      return until.toDate().isAfter(DateTime.now());
+    }
+    return enabled;
+  });
+});
+
 final isPremiumProvider = FutureProvider<bool>((ref) async {
   if (isDemoMode) {
     return true;
   }
+
+  // グローバル解放中なら認証済みユーザー全員プレミアム扱い
+  final globalUnlock = ref.watch(premiumGlobalUnlockProvider).value ?? false;
+  if (globalUnlock) return true;
 
   final appUser = ref.watch(appUserProvider).value;
   if (appUser == null) return false;

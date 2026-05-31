@@ -111,5 +111,51 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // Global app config (public read / admin can write)
+    // e.g. config/premium_unlock = { enabled: bool, until: timestamp }
+    match /config/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Chapters (public read / admin can write)
+    match /chapters/{chapterId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Events (public read / admin can write)
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Per-user progress (legacy `progress` and `courseProgress`)
+    match /progress/{progressId} {
+      allow read, write: if (request.auth != null
+        && request.resource.data.userId == request.auth.uid)
+        || (request.auth != null && resource != null
+        && resource.data.userId == request.auth.uid)
+        || isAdmin();
+    }
+
+    match /courseProgress/{progressId} {
+      allow read, write: if (request.auth != null
+        && request.resource.data.userId == request.auth.uid)
+        || (request.auth != null && resource != null
+        && resource.data.userId == request.auth.uid)
+        || isAdmin();
+    }
+
+    // Event participations (user-scoped)
+    match /eventParticipations/{participationId} {
+      allow read: if (request.auth != null && resource != null
+        && resource.data.userId == request.auth.uid) || isAdmin();
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if (request.auth != null
+        && resource.data.userId == request.auth.uid) || isAdmin();
+    }
   }
 }
