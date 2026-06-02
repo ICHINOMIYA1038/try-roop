@@ -45,5 +45,4 @@ class Bookmark {
 enum BookmarkTargetType {
   video,
   course,
-  post,
 }

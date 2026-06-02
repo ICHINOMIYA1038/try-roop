@@ -5,7 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../config/feature_flags.dart';
 import '../../models/video.dart';
 import '../../models/course.dart';
-import '../../models/post.dart';
 import '../../providers/providers.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
@@ -23,7 +22,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -43,7 +42,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
           controller: _searchController,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: '動画、コース、投稿を検索...',
+            hintText: '動画、コースを検索...',
             border: InputBorder.none,
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
@@ -64,7 +63,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
           tabs: const [
             Tab(text: '動画'),
             Tab(text: 'コース'),
-            Tab(text: '投稿'),
           ],
         ),
       ),
@@ -72,7 +70,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
         data: (results) {
           final videos = results['videos'] as List<Video>;
           final courses = results['courses'] as List<Course>;
-          final posts = results['posts'] as List<Post>;
 
           if (_searchController.text.isEmpty) {
             return const Center(
@@ -94,8 +91,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
               _buildVideoList(videos),
               // Courses
               _buildCourseList(courses),
-              // Posts
-              _buildPostList(posts),
             ],
           );
         },
@@ -184,33 +179,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
     );
   }
 
-  Widget _buildPostList(List<Post> posts) {
-    if (posts.isEmpty) {
-      return const Center(child: Text('投稿が見つかりません'));
-    }
-
-    return ListView.builder(
-      itemCount: posts.length,
-      itemBuilder: (context, index) {
-        final post = posts[index];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.grey[300],
-            child: Text(
-              post.authorName.isNotEmpty ? post.authorName[0].toUpperCase() : '?',
-            ),
-          ),
-          title: Text(
-            post.content,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text(post.authorName),
-          onTap: () => context.push('/post/${post.id}'),
-        );
-      },
-    );
-  }
 }
 
 /// Placeholder widget for video section when video content is coming soon

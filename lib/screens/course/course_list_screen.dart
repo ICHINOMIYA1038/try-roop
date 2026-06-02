@@ -120,7 +120,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                   );
                 }
 
-                final progressList = userProgressAsync.value ?? [];
+                final progressList = userProgressAsync.valueOrNull ?? [];
 
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),

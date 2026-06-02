@@ -50,7 +50,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   }
 
   void _updateCurrentChapter() {
-    final chapters = ref.read(chaptersProvider(widget.videoId)).value ?? [];
+    final chapters = ref.read(chaptersProvider(widget.videoId)).valueOrNull ?? [];
     if (chapters.isEmpty || _controller == null) return;
 
     final currentPosition = _controller!.value.position.inSeconds;

@@ -103,10 +103,6 @@ class NotificationTile extends StatelessWidget {
         return Icons.play_circle_outline;
       case NotificationType.newCourse:
         return Icons.school_outlined;
-      case NotificationType.commentReply:
-        return Icons.reply;
-      case NotificationType.like:
-        return Icons.favorite_border;
       case NotificationType.announcement:
         return Icons.campaign_outlined;
       case NotificationType.liveSchedule:
@@ -120,10 +116,6 @@ class NotificationTile extends StatelessWidget {
         return Colors.blue;
       case NotificationType.newCourse:
         return Colors.purple;
-      case NotificationType.commentReply:
-        return Colors.green;
-      case NotificationType.like:
-        return Colors.red;
       case NotificationType.announcement:
         return Colors.orange;
       case NotificationType.liveSchedule:

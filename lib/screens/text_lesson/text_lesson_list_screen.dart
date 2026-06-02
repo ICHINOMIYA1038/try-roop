@@ -19,7 +19,7 @@ class _TextLessonListScreenState extends ConsumerState<TextLessonListScreen> {
   Widget build(BuildContext context) {
     final lessonsAsync = ref.watch(textLessonsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
-    final isPremium = ref.watch(isPremiumProvider).value ?? false;
+    final isPremium = ref.watch(isPremiumProvider).valueOrNull ?? false;
 
     return lessonsAsync.when(
       loading: () => Scaffold(

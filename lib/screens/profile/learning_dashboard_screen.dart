@@ -102,7 +102,7 @@ class LearningDashboardScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             coursesAsync.when(
               data: (courses) {
-                final progressList = progressListAsync.value ?? [];
+                final progressList = progressListAsync.valueOrNull ?? [];
                 final inProgressCourses = courses.where((course) {
                   final progress = progressList
                       .where((p) => p.courseId == course.id)
@@ -165,7 +165,7 @@ class LearningDashboardScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             coursesAsync.when(
               data: (courses) {
-                final progressList = progressListAsync.value ?? [];
+                final progressList = progressListAsync.valueOrNull ?? [];
                 final completedCourses = courses.where((course) {
                   final progress = progressList
                       .where((p) => p.courseId == course.id)

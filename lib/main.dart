@@ -15,6 +15,51 @@ bool isDemoMode = const bool.fromEnvironment('DEMO_MODE', defaultValue: false);
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 全 Flutter 例外をログに残す + 赤い ErrorWidget をデバッグ可能な表示に差し替え。
+  // permission-denied など、どの widget が throw したかをコンソールで特定するため。
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('=== FlutterError caught ===');
+    debugPrint('library : ${details.library}');
+    debugPrint('context : ${details.context}');
+    debugPrint('exception: ${details.exception}');
+    debugPrint('stack:\n${details.stack}');
+  };
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    debugPrint('=== ErrorWidget rendered ===');
+    debugPrint('exception: ${details.exception}');
+    debugPrint('stack:\n${details.stack}');
+    return Material(
+      color: const Color(0xFFFFF1E3),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '⚠️ 表示エラー',
+              style: TextStyle(
+                color: Color(0xFF7A3E14),
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${details.exception}',
+              style: const TextStyle(
+                color: Color(0xFF7A3E14),
+                fontSize: 11,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  };
+
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,

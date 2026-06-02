@@ -4,6 +4,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../../config/legal_urls.dart';
 import '../../providers/providers.dart';
+import '../../widgets/premium_unlock_banner.dart';
 
 class SubscriptionScreen extends ConsumerStatefulWidget {
   const SubscriptionScreen({super.key});
@@ -79,7 +80,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   @override
   Widget build(BuildContext context) {
     final packagesAsync = ref.watch(packagesProvider);
-    final isPremium = ref.watch(isPremiumProvider).value ?? false;
+    final isPremium = ref.watch(isPremiumProvider).valueOrNull ?? false;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -99,6 +100,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
+            const PremiumUnlockBanner(padding: EdgeInsets.only(bottom: 16)),
             // Header
             Container(
               padding: const EdgeInsets.all(24),

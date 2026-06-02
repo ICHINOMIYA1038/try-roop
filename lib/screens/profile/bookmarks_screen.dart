@@ -20,7 +20,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -39,7 +39,6 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
           tabs: const [
             Tab(text: '動画'),
             Tab(text: 'コース'),
-            Tab(text: '投稿'),
           ],
         ),
       ),
@@ -48,7 +47,6 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
         children: [
           _BookmarkList(targetType: BookmarkTargetType.video),
           _BookmarkList(targetType: BookmarkTargetType.course),
-          _BookmarkList(targetType: BookmarkTargetType.post),
         ],
       ),
     );
@@ -107,8 +105,6 @@ class _BookmarkList extends ConsumerWidget {
         return '動画';
       case BookmarkTargetType.course:
         return 'コース';
-      case BookmarkTargetType.post:
-        return '投稿';
     }
   }
 
@@ -119,9 +115,6 @@ class _BookmarkList extends ConsumerWidget {
         break;
       case BookmarkTargetType.course:
         context.push('/course/${bookmark.targetId}');
-        break;
-      case BookmarkTargetType.post:
-        context.push('/post/${bookmark.targetId}');
         break;
     }
   }
@@ -212,41 +205,6 @@ class _BookmarkItem extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text('${course.videoCount}本 / ${course.totalDurationFormatted}'),
-                onTap: onTap,
-              ),
-            );
-          },
-          loading: () => const Card(
-            child: ListTile(
-              title: Text('読み込み中...'),
-            ),
-          ),
-          error: (_, __) => const SizedBox.shrink(),
-        );
-
-      case BookmarkTargetType.post:
-        final postAsync = ref.watch(postProvider(bookmark.targetId));
-        return postAsync.when(
-          data: (post) {
-            if (post == null) {
-              return const SizedBox.shrink();
-            }
-            return Card(
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                  child: Text(
-                    post.authorName.isNotEmpty
-                        ? post.authorName[0].toUpperCase()
-                        : '?',
-                  ),
-                ),
-                title: Text(
-                  post.content,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: Text(post.authorName),
                 onTap: onTap,
               ),
             );

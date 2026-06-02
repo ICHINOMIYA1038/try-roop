@@ -89,18 +89,6 @@ class NotificationScreen extends ConsumerWidget {
           context.push('/course/$courseId');
         }
         break;
-      case NotificationType.commentReply:
-        final postId = notification.data['postId'];
-        if (postId != null) {
-          context.push('/post/$postId');
-        }
-        break;
-      case NotificationType.like:
-        final postId = notification.data['postId'];
-        if (postId != null) {
-          context.push('/post/$postId');
-        }
-        break;
       case NotificationType.announcement:
         final announcementId = notification.data['announcementId'];
         if (announcementId != null) {

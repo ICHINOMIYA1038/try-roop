@@ -46,40 +46,20 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Posts (community)
-    match /posts/{postId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if (request.auth != null && request.auth.uid == resource.data.authorId)
-        || isAdmin();
-    }
-
-    // Comments
-    match /comments/{commentId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if (request.auth != null && request.auth.uid == resource.data.authorId)
-        || isAdmin();
-    }
-
-    // Likes
-    match /likes/{likeId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null
-        && request.resource.data.userId == request.auth.uid;
-      allow delete: if (request.auth != null
-        && resource.data.userId == request.auth.uid) || isAdmin();
-      allow update: if false;
-    }
-
-    // Bookmarks
+    // Bookmarks — docId 形式 `{uid}_{type}_{targetId}` で uid を識別。
+    // 存在しないドキュメントの read で permission-denied にならないよう docId プレフィクスで判定。
     match /bookmarks/{bookmarkId} {
-      allow read: if (request.auth != null && request.auth.uid == resource.data.userId)
-        || isAdmin();
+      allow read: if isAdmin() || (
+        request.auth != null
+        && bookmarkId.matches('^' + request.auth.uid + '_.*')
+      );
       allow create: if request.auth != null
-        && request.resource.data.userId == request.auth.uid;
-      allow delete: if (request.auth != null
-        && resource.data.userId == request.auth.uid) || isAdmin();
+        && request.resource.data.userId == request.auth.uid
+        && bookmarkId.matches('^' + request.auth.uid + '_.*');
+      allow delete: if isAdmin() || (
+        request.auth != null
+        && bookmarkId.matches('^' + request.auth.uid + '_.*')
+      );
       allow update: if false;
     }
 
@@ -140,22 +120,33 @@ service cloud.firestore {
         || isAdmin();
     }
 
+    // docId 形式 `{uid}_{courseId}` で uid を識別。
+    // 未作成 (resource == null) のドキュメントも、自分のものなら read 可能にする。
     match /courseProgress/{progressId} {
-      allow read, write: if (request.auth != null
-        && request.resource.data.userId == request.auth.uid)
-        || (request.auth != null && resource != null
-        && resource.data.userId == request.auth.uid)
-        || isAdmin();
+      allow read: if isAdmin() || (
+        request.auth != null
+        && progressId.matches('^' + request.auth.uid + '_.*')
+      );
+      allow write: if isAdmin() || (
+        request.auth != null
+        && progressId.matches('^' + request.auth.uid + '_.*')
+        && request.resource.data.userId == request.auth.uid
+      );
     }
 
-    // Event participations (user-scoped)
+    // Event participations — docId 形式 `{uid}_{eventId}`。
     match /eventParticipations/{participationId} {
-      allow read: if (request.auth != null && resource != null
-        && resource.data.userId == request.auth.uid) || isAdmin();
+      allow read: if isAdmin() || (
+        request.auth != null
+        && participationId.matches('^' + request.auth.uid + '_.*')
+      );
       allow create: if request.auth != null
-        && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if (request.auth != null
-        && resource.data.userId == request.auth.uid) || isAdmin();
+        && request.resource.data.userId == request.auth.uid
+        && participationId.matches('^' + request.auth.uid + '_.*');
+      allow update, delete: if isAdmin() || (
+        request.auth != null
+        && participationId.matches('^' + request.auth.uid + '_.*')
+      );
     }
   }
 }

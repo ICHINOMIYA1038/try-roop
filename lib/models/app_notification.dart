@@ -76,10 +76,6 @@ class AppNotification {
         return '新着動画';
       case NotificationType.newCourse:
         return '新着コース';
-      case NotificationType.commentReply:
-        return '返信';
-      case NotificationType.like:
-        return 'いいね';
       case NotificationType.announcement:
         return 'お知らせ';
       case NotificationType.liveSchedule:
@@ -91,8 +87,6 @@ class AppNotification {
 enum NotificationType {
   newVideo,
   newCourse,
-  commentReply,
-  like,
   announcement,
   liveSchedule,
 }

@@ -6,9 +6,6 @@ import '../models/video_progress.dart';
 import '../models/category.dart';
 import '../models/course.dart';
 import '../models/course_progress.dart';
-import '../models/post.dart';
-import '../models/comment.dart';
-import '../models/like.dart';
 import '../models/bookmark.dart';
 import '../models/app_notification.dart';
 import '../models/announcement.dart';
@@ -62,18 +59,6 @@ class FirestoreService {
       if (!doc.exists) return null;
       return UserStats.fromMap(doc.data()!, uid);
     });
-  }
-
-  Future<List<AppUser>> getMembers({int limit = 50}) async {
-    final snapshot = await _db
-        .collection('users')
-        .orderBy('createdAt', descending: true)
-        .limit(limit)
-        .get();
-
-    return snapshot.docs
-        .map((doc) => AppUser.fromMap(doc.data(), doc.id))
-        .toList();
   }
 
   // ==================== Videos ====================
@@ -299,156 +284,6 @@ class FirestoreService {
     return snapshot.docs
         .map((doc) => CourseProgress.fromMap(doc.data(), doc.id))
         .toList();
-  }
-
-  // ==================== Posts ====================
-
-  Future<List<Post>> getPosts({int limit = 20, DocumentSnapshot? lastDoc}) async {
-    Query<Map<String, dynamic>> query = _db
-        .collection('posts')
-        .orderBy('isPinned', descending: true)
-        .orderBy('createdAt', descending: true)
-        .limit(limit);
-
-    if (lastDoc != null) {
-      query = query.startAfterDocument(lastDoc);
-    }
-
-    final snapshot = await query.get();
-    return snapshot.docs.map((doc) => Post.fromMap(doc.data(), doc.id)).toList();
-  }
-
-  Future<Post?> getPost(String postId) async {
-    final doc = await _db.collection('posts').doc(postId).get();
-    if (!doc.exists) return null;
-    return Post.fromMap(doc.data()!, postId);
-  }
-
-  Stream<List<Post>> postsStream({int limit = 20}) {
-    return _db
-        .collection('posts')
-        .orderBy('isPinned', descending: true)
-        .orderBy('createdAt', descending: true)
-        .limit(limit)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Post.fromMap(doc.data(), doc.id))
-            .toList());
-  }
-
-  Future<String> createPost(Post post) async {
-    final docRef = await _db.collection('posts').add(post.toMap());
-    return docRef.id;
-  }
-
-  Future<void> updatePost(Post post) async {
-    await _db.collection('posts').doc(post.id).update(post.toMap());
-  }
-
-  Future<void> deletePost(String postId) async {
-    await _db.collection('posts').doc(postId).delete();
-  }
-
-  Future<List<Post>> getUserPosts(String userId) async {
-    final snapshot = await _db
-        .collection('posts')
-        .where('authorId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
-        .get();
-
-    return snapshot.docs
-        .map((doc) => Post.fromMap(doc.data(), doc.id))
-        .toList();
-  }
-
-  // ==================== Comments ====================
-
-  Future<List<Comment>> getComments(CommentTargetType targetType, String targetId) async {
-    final snapshot = await _db
-        .collection('comments')
-        .where('targetType', isEqualTo: targetType.name)
-        .where('targetId', isEqualTo: targetId)
-        .orderBy('createdAt', descending: false)
-        .get();
-
-    return snapshot.docs
-        .map((doc) => Comment.fromMap(doc.data(), doc.id))
-        .toList();
-  }
-
-  Stream<List<Comment>> commentsStream(CommentTargetType targetType, String targetId) {
-    return _db
-        .collection('comments')
-        .where('targetType', isEqualTo: targetType.name)
-        .where('targetId', isEqualTo: targetId)
-        .orderBy('createdAt', descending: false)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Comment.fromMap(doc.data(), doc.id))
-            .toList());
-  }
-
-  Future<String> createComment(Comment comment) async {
-    final docRef = await _db.collection('comments').add(comment.toMap());
-
-    // Update comment count on target
-    if (comment.targetType == CommentTargetType.post) {
-      await _db.collection('posts').doc(comment.targetId).update({
-        'commentCount': FieldValue.increment(1),
-      });
-    }
-
-    return docRef.id;
-  }
-
-  Future<void> deleteComment(Comment comment) async {
-    await _db.collection('comments').doc(comment.id).delete();
-
-    // Update comment count on target
-    if (comment.targetType == CommentTargetType.post) {
-      await _db.collection('posts').doc(comment.targetId).update({
-        'commentCount': FieldValue.increment(-1),
-      });
-    }
-  }
-
-  // ==================== Likes ====================
-
-  Future<bool> hasLiked(String userId, LikeTargetType targetType, String targetId) async {
-    final docId = Like.generateId(userId, targetType, targetId);
-    final doc = await _db.collection('likes').doc(docId).get();
-    return doc.exists;
-  }
-
-  Future<void> toggleLike(String userId, LikeTargetType targetType, String targetId) async {
-    final docId = Like.generateId(userId, targetType, targetId);
-    final docRef = _db.collection('likes').doc(docId);
-    final doc = await docRef.get();
-
-    final targetCollection = targetType == LikeTargetType.post ? 'posts' : 'comments';
-    final targetRef = _db.collection(targetCollection).doc(targetId);
-
-    if (doc.exists) {
-      // Unlike
-      await docRef.delete();
-      await targetRef.update({'likeCount': FieldValue.increment(-1)});
-    } else {
-      // Like
-      final like = Like(
-        id: docId,
-        userId: userId,
-        targetType: targetType,
-        targetId: targetId,
-        createdAt: DateTime.now(),
-      );
-      await docRef.set(like.toMap());
-      await targetRef.update({'likeCount': FieldValue.increment(1)});
-    }
-  }
-
-  Stream<bool> likeStream(String userId, LikeTargetType targetType, String targetId) {
-    final docId = Like.generateId(userId, targetType, targetId);
-    return _db.collection('likes').doc(docId).snapshots().map((doc) => doc.exists);
   }
 
   // ==================== Bookmarks ====================
@@ -706,13 +541,11 @@ class FirestoreService {
     final results = await Future.wait([
       searchVideos(query),
       _searchCourses(query),
-      _searchPosts(query),
     ]);
 
     return {
       'videos': results[0],
       'courses': results[1],
-      'posts': results[2],
     };
   }
 
@@ -728,20 +561,6 @@ class FirestoreService {
 
     return snapshot.docs
         .map((doc) => Course.fromMap(doc.data(), doc.id))
-        .toList();
-  }
-
-  Future<List<Post>> _searchPosts(String query) async {
-    final snapshot = await _db
-        .collection('posts')
-        .orderBy('content')
-        .startAt([query])
-        .endAt(['$query\uf8ff'])
-        .limit(10)
-        .get();
-
-    return snapshot.docs
-        .map((doc) => Post.fromMap(doc.data(), doc.id))
         .toList();
   }
 

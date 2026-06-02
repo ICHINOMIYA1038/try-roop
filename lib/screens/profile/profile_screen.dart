@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../config/legal_urls.dart';
 import '../../providers/providers.dart';
+import '../../widgets/premium_unlock_banner.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -81,10 +82,12 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appUser = ref.watch(appUserProvider).value;
+    final appUser = ref.watch(appUserProvider).valueOrNull;
     final firebaseUser = ref.watch(currentUserProvider);
-    final isPremium = ref.watch(isPremiumProvider).value ?? false;
-    final unreadCount = ref.watch(unreadNotificationCountProvider).value ?? 0;
+    final isPremium = ref.watch(isPremiumProvider).valueOrNull ?? false;
+    final globalUnlock =
+        ref.watch(premiumGlobalUnlockProvider).valueOrNull ?? false;
+    final unreadCount = ref.watch(unreadNotificationCountProvider).valueOrNull ?? 0;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Use theme background
@@ -170,7 +173,9 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          isPremium ? 'プレミアム会員' : '無料会員',
+                          globalUnlock
+                              ? 'プレミアム解放中（無料）'
+                              : (isPremium ? 'プレミアム会員' : '無料会員'),
                           style: TextStyle(
                             color: isPremium
                                 ? const Color(0xFFFF8A3D)
@@ -184,10 +189,15 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-            // Subscription CTA (for free users)
-            if (!isPremium)
+            // Global premium unlock notice
+            const PremiumUnlockBanner(
+              padding: EdgeInsets.only(bottom: 16),
+            ),
+
+            // Subscription CTA (hidden during global unlock)
+            if (!isPremium && !globalUnlock)
               GestureDetector(
                 onTap: () => context.push('/subscription'),
                 child: Container(
@@ -307,12 +317,6 @@ class ProfileScreen extends ConsumerWidget {
                     icon: Icons.emoji_events_outlined,
                     title: 'バッジコレクション',
                     onTap: () => context.push('/badges'),
-                  ),
-                  const _MenuDivider(),
-                  _MenuItem(
-                    icon: Icons.people_outline,
-                    title: 'メンバー一覧',
-                    onTap: () => context.push('/members'),
                   ),
                 ],
               ),

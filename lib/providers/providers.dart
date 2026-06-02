@@ -10,13 +10,10 @@ import '../models/chapter.dart';
 import '../models/category.dart';
 import '../models/course.dart';
 import '../models/course_progress.dart';
-import '../models/post.dart';
-import '../models/comment.dart';
 import '../models/bookmark.dart';
 import '../models/app_notification.dart';
 import '../models/announcement.dart';
 import '../models/badge.dart';
-import '../models/like.dart';
 import '../models/live_schedule.dart';
 import '../models/user_stats.dart';
 import '../models/text_lesson.dart';
@@ -77,68 +74,6 @@ final _demoCourses = [
   ),
 ];
 
-List<Post> demoPosts = [
-  Post(
-    id: 'post1',
-    authorId: 'demo_user',
-    authorName: 'サロン運営',
-    authorPhotoUrl: null,
-    content: '皆さん、TryRoop Campus へようこそ！\n\nこのコミュニティでは、健康・フィットネス・AIについて一緒に学んでいきましょう。質問や感想があればお気軽に投稿してください！',
-    imageUrls: [],
-    likeCount: 42,
-    commentCount: 5,
-    isPinned: true,
-    createdAt: DateTime.now().subtract(const Duration(days: 30)),
-    updatedAt: DateTime.now().subtract(const Duration(days: 30)),
-  ),
-  Post(
-    id: 'post2',
-    authorId: 'user1',
-    authorName: '田中太郎',
-    authorPhotoUrl: null,
-    content: '空手フィットネス入門コースを完走しました！🎉\n\n最初は体が硬くて大変でしたが、毎日少しずつ続けていたら、だいぶ動けるようになりました。次は自重トレーニングに挑戦します！',
-    imageUrls: [],
-    likeCount: 15,
-    commentCount: 3,
-    isPinned: false,
-    createdAt: DateTime.now().subtract(const Duration(days: 2)),
-    updatedAt: DateTime.now().subtract(const Duration(days: 2)),
-  ),
-  Post(
-    id: 'post3',
-    authorId: 'user2',
-    authorName: '鈴木花子',
-    authorPhotoUrl: null,
-    content: 'AI活用コース、とても勉強になりました！\n\nChatGPTを使って仕事の効率が上がりました。特にメール作成のテンプレート化が便利です。',
-    imageUrls: [],
-    likeCount: 23,
-    commentCount: 7,
-    isPinned: false,
-    createdAt: DateTime.now().subtract(const Duration(days: 1)),
-    updatedAt: DateTime.now().subtract(const Duration(days: 1)),
-  ),
-];
-
-void addDemoPost(Post post) {
-  demoPosts.insert(0, post);
-}
-
-final _demoComments = {
-  'post1': [
-    Comment(
-      id: 'comment1',
-      targetType: CommentTargetType.post,
-      targetId: 'post1',
-      authorId: 'user1',
-      authorName: '田中太郎',
-      content: 'よろしくお願いします！',
-      likeCount: 3,
-      createdAt: DateTime.now().subtract(const Duration(days: 29)),
-      updatedAt: DateTime.now().subtract(const Duration(days: 29)),
-    ),
-  ],
-};
-
 final _demoAnnouncements = [
   Announcement(
     id: 'ann1',
@@ -179,14 +114,6 @@ final _demoBadges = [
     description: '7日間連続でアプリを利用しました',
     iconUrl: '🔥',
     condition: BadgeCondition(type: BadgeConditionType.consecutiveDays, threshold: 7),
-    createdAt: DateTime.now(),
-  ),
-  Badge(
-    id: 'badge4',
-    name: 'コミュニティ参加',
-    description: '初めての投稿を行いました',
-    iconUrl: '💬',
-    condition: BadgeCondition(type: BadgeConditionType.postsCreated, threshold: 1),
     createdAt: DateTime.now(),
   ),
 ];
@@ -237,7 +164,7 @@ final authStateProvider = StreamProvider<User?>((ref) {
 });
 
 final currentUserProvider = Provider<User?>((ref) {
-  return ref.watch(authStateProvider).value;
+  return ref.watch(authStateProvider).valueOrNull;
 });
 
 // ==================== App User ====================
@@ -314,10 +241,10 @@ final isPremiumProvider = FutureProvider<bool>((ref) async {
   }
 
   // グローバル解放中なら認証済みユーザー全員プレミアム扱い
-  final globalUnlock = ref.watch(premiumGlobalUnlockProvider).value ?? false;
+  final globalUnlock = ref.watch(premiumGlobalUnlockProvider).valueOrNull ?? false;
   if (globalUnlock) return true;
 
-  final appUser = ref.watch(appUserProvider).value;
+  final appUser = ref.watch(appUserProvider).valueOrNull;
   if (appUser == null) return false;
 
   final subscriptionService = ref.watch(subscriptionServiceProvider);
@@ -341,18 +268,18 @@ final videosProvider = StreamProvider<List<Video>>((ref) {
 });
 
 final freeVideosProvider = Provider<List<Video>>((ref) {
-  final videos = ref.watch(videosProvider).value ?? [];
+  final videos = ref.watch(videosProvider).valueOrNull ?? [];
   return videos.where((v) => v.accessLevel == AccessLevel.free).toList();
 });
 
 final premiumVideosProvider = Provider<List<Video>>((ref) {
-  final videos = ref.watch(videosProvider).value ?? [];
+  final videos = ref.watch(videosProvider).valueOrNull ?? [];
   return videos.where((v) => v.accessLevel == AccessLevel.premium).toList();
 });
 
 final accessibleVideosProvider = Provider<List<Video>>((ref) {
-  final videos = ref.watch(videosProvider).value ?? [];
-  final isPremium = ref.watch(isPremiumProvider).value ?? false;
+  final videos = ref.watch(videosProvider).valueOrNull ?? [];
+  final isPremium = ref.watch(isPremiumProvider).valueOrNull ?? false;
 
   if (isPremium) {
     return videos;
@@ -440,7 +367,7 @@ final coursesByCategoryProvider =
 
 final courseVideosProvider =
     Provider.family<List<Video>, Course>((ref, course) {
-  final allVideos = ref.watch(videosProvider).value ?? [];
+  final allVideos = ref.watch(videosProvider).valueOrNull ?? [];
   return course.videoIds
       .map((id) => allVideos.where((v) => v.id == id).firstOrNull)
       .whereType<Video>()
@@ -488,56 +415,6 @@ final userCourseProgressListProvider = FutureProvider<List<CourseProgress>>((ref
   if (user == null) return [];
 
   return await ref.watch(firestoreServiceProvider).getUserCourseProgress(user.uid);
-});
-
-// ==================== Posts ====================
-
-final postsProvider = StreamProvider<List<Post>>((ref) {
-  if (isDemoMode) {
-    return Stream.value(demoPosts);
-  }
-  return ref.watch(firestoreServiceProvider).postsStream();
-});
-
-final postProvider = FutureProvider.family<Post?, String>((ref, postId) async {
-  if (isDemoMode) {
-    final posts = ref.watch(postsProvider).value ?? demoPosts;
-    return posts.where((p) => p.id == postId).firstOrNull;
-  }
-  return await ref.watch(firestoreServiceProvider).getPost(postId);
-});
-
-// ==================== Comments ====================
-
-final commentsProvider =
-    StreamProvider.family<List<Comment>, ({CommentTargetType type, String targetId})>(
-        (ref, params) {
-  if (isDemoMode) {
-    if (params.type == CommentTargetType.post) {
-      return Stream.value(_demoComments[params.targetId] ?? []);
-    }
-    return Stream.value([]);
-  }
-  return ref
-      .watch(firestoreServiceProvider)
-      .commentsStream(params.type, params.targetId);
-});
-
-// ==================== Likes ====================
-
-final hasLikedProvider =
-    StreamProvider.family<bool, ({LikeTargetType type, String targetId})>(
-        (ref, params) {
-  if (isDemoMode) {
-    return Stream.value(false);
-  }
-
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return Stream.value(false);
-
-  return ref
-      .watch(firestoreServiceProvider)
-      .likeStream(user.uid, params.type, params.targetId);
 });
 
 // ==================== Bookmarks ====================
@@ -625,7 +502,7 @@ final userBadgesProvider = FutureProvider<List<Badge>>((ref) async {
     return _demoBadges.take(2).toList();
   }
 
-  final userStats = ref.watch(userStatsProvider).value;
+  final userStats = ref.watch(userStatsProvider).valueOrNull;
   if (userStats == null || userStats.badgeIds.isEmpty) return [];
 
   return await ref.watch(firestoreServiceProvider).getUserBadges(userStats.badgeIds);
@@ -661,7 +538,7 @@ final searchQueryProvider = StateProvider<String>((ref) => '');
 final searchResultsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final query = ref.watch(searchQueryProvider);
   if (query.isEmpty) {
-    return {'videos': <Video>[], 'courses': <Course>[], 'posts': <Post>[]};
+    return {'videos': <Video>[], 'courses': <Course>[]};
   }
 
   if (isDemoMode) {
@@ -671,47 +548,10 @@ final searchResultsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
     final courses = _demoCourses
         .where((c) => c.title.toLowerCase().contains(query.toLowerCase()))
         .toList();
-    final posts = demoPosts
-        .where((p) => p.content.toLowerCase().contains(query.toLowerCase()))
-        .toList();
-    return {'videos': videos, 'courses': courses, 'posts': posts};
+    return {'videos': videos, 'courses': courses};
   }
 
   return await ref.watch(firestoreServiceProvider).search(query);
-});
-
-// ==================== Members ====================
-
-final membersProvider = FutureProvider<List<AppUser>>((ref) async {
-  if (isDemoMode) {
-    return [
-      AppUser(
-        uid: 'demo_user',
-        email: 'demo@example.com',
-        displayName: 'デモユーザー',
-        membershipType: MembershipType.premium,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      AppUser(
-        uid: 'user1',
-        email: 'tanaka@example.com',
-        displayName: '田中太郎',
-        membershipType: MembershipType.premium,
-        createdAt: DateTime.now().subtract(const Duration(days: 30)),
-        updatedAt: DateTime.now(),
-      ),
-      AppUser(
-        uid: 'user2',
-        email: 'suzuki@example.com',
-        displayName: '鈴木花子',
-        membershipType: MembershipType.premium,
-        createdAt: DateTime.now().subtract(const Duration(days: 20)),
-        updatedAt: DateTime.now(),
-      ),
-    ];
-  }
-  return await ref.watch(firestoreServiceProvider).getMembers();
 });
 
 // ==================== Navigation ====================
@@ -843,13 +683,13 @@ final textLessonsProvider = StreamProvider<List<TextLesson>>((ref) {
 });
 
 final freeTextLessonsProvider = Provider<List<TextLesson>>((ref) {
-  final lessons = ref.watch(textLessonsProvider).value ?? [];
+  final lessons = ref.watch(textLessonsProvider).valueOrNull ?? [];
   return lessons.where((l) => l.isFree).toList();
 });
 
 final textLessonsByCategoryProvider =
     Provider.family<List<TextLesson>, String>((ref, categoryId) {
-  final lessons = ref.watch(textLessonsProvider).value ?? [];
+  final lessons = ref.watch(textLessonsProvider).valueOrNull ?? [];
   return lessons.where((l) => l.categoryId == categoryId).toList();
 });
 

@@ -14,15 +14,10 @@ import 'screens/profile/badges_screen.dart';
 import 'screens/profile/learning_dashboard_screen.dart';
 import 'screens/course/course_list_screen.dart';
 import 'screens/course/course_detail_screen.dart';
-import 'screens/community/community_screen.dart';
-import 'screens/community/post_detail_screen.dart';
-import 'screens/community/create_post_screen.dart';
 import 'screens/notification/notification_screen.dart';
 import 'screens/search/search_screen.dart';
 import 'screens/announcement/announcement_list_screen.dart';
 import 'screens/announcement/announcement_detail_screen.dart';
-import 'screens/members/members_screen.dart';
-import 'screens/members/member_profile_screen.dart';
 import 'screens/text_lesson/text_lesson_list_screen.dart';
 import 'screens/text_lesson/text_lesson_detail_screen.dart';
 import 'screens/event/event_calendar_screen.dart';
@@ -32,14 +27,11 @@ import 'screens/admin/admin_text_lesson_editor_screen.dart';
 
 // Routes that require authentication
 const _authRequiredRoutes = [
-  '/community',
   '/notifications',
   '/profile',
-  '/post/create',
   '/bookmarks',
   '/badges',
   '/dashboard',
-  '/members',
   '/events',
 ];
 
@@ -109,12 +101,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const TextLessonListScreen(),
           ),
 
-          // Community
-          GoRoute(
-            path: '/community',
-            builder: (context, state) => const CommunityScreen(),
-          ),
-
           // Notifications
           GoRoute(
             path: '/notifications',
@@ -158,21 +144,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Post Detail
-      GoRoute(
-        path: '/post/:id',
-        builder: (context, state) {
-          final postId = state.pathParameters['id']!;
-          return PostDetailScreen(postId: postId);
-        },
-      ),
-
-      // Create Post
-      GoRoute(
-        path: '/post/create',
-        builder: (context, state) => const CreatePostScreen(),
-      ),
-
       // Subscription (modal)
       GoRoute(
         path: '/subscription',
@@ -197,21 +168,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final announcementId = state.pathParameters['id']!;
           return AnnouncementDetailScreen(announcementId: announcementId);
-        },
-      ),
-
-      // Members
-      GoRoute(
-        path: '/members',
-        builder: (context, state) => const MembersScreen(),
-      ),
-
-      // Member Profile
-      GoRoute(
-        path: '/member/:id',
-        builder: (context, state) {
-          final memberId = state.pathParameters['id']!;
-          return MemberProfileScreen(memberId: memberId);
         },
       ),
 
@@ -282,8 +238,7 @@ class MainShell extends ConsumerWidget {
   int _getSelectedIndexLoggedIn(String location) {
     if (location.startsWith('/courses')) return 1;
     if (location.startsWith('/text-lessons')) return 2;
-    if (location.startsWith('/community')) return 3;
-    if (location.startsWith('/profile')) return 4;
+    if (location.startsWith('/profile')) return 3;
     return 0;
   }
 
@@ -296,7 +251,7 @@ class MainShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isLoggedIn = ref.watch(authStateProvider).value != null || isDemoMode;
+    final isLoggedIn = ref.watch(authStateProvider).valueOrNull != null || isDemoMode;
     // We don't need unreadCount here anymore as notification tab is gone
     
     if (isLoggedIn) {
@@ -349,9 +304,6 @@ class MainShell extends ConsumerWidget {
                 context.go('/text-lessons');
                 break;
               case 3:
-                context.go('/community');
-                break;
-              case 4:
                 context.go('/profile');
                 break;
             }
@@ -365,17 +317,12 @@ class MainShell extends ConsumerWidget {
             BottomNavigationBarItem(
               icon: Icon(Icons.play_circle_outline),
               activeIcon: Icon(Icons.play_circle),
-              label: '動画',
+              label: 'コース',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.article_outlined),
               activeIcon: Icon(Icons.article),
               label: 'テキスト',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.forum_outlined),
-              activeIcon: Icon(Icons.forum),
-              label: 'コミュニティ',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),
@@ -442,7 +389,7 @@ class MainShell extends ConsumerWidget {
             BottomNavigationBarItem(
               icon: Icon(Icons.play_circle_outline),
               activeIcon: Icon(Icons.play_circle),
-              label: '動画',
+              label: 'コース',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.article_outlined),

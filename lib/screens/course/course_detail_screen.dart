@@ -20,7 +20,7 @@ class CourseDetailScreen extends ConsumerWidget {
     final progressAsync = ref.watch(courseProgressProvider(courseId));
     final hasBookmarked = ref.watch(hasBookmarkedProvider(
       (type: BookmarkTargetType.course, targetId: courseId),
-    )).value ?? false;
+    )).valueOrNull ?? false;
 
     return courseAsync.when(
       data: (course) {

@@ -74,7 +74,5 @@ enum BadgeConditionType {
   coursesCompleted,   // Complete N courses
   specificCourse,     // Complete specific course
   consecutiveDays,    // Login N consecutive days
-  postsCreated,       // Create N posts
-  commentsCreated,    // Create N comments
   totalWatchTime,     // Watch for N minutes total
 }

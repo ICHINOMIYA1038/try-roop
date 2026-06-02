@@ -10,6 +10,7 @@ import '../../models/category.dart';
 import '../../models/text_lesson.dart';
 import '../../models/event.dart';
 import '../../widgets/video_card.dart';
+import '../../widgets/premium_unlock_banner.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -44,8 +45,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesProvider);
-    final appUser = ref.watch(appUserProvider).value;
-    final isPremium = ref.watch(isPremiumProvider).value ?? false;
+    final appUser = ref.watch(appUserProvider).valueOrNull;
+    final isPremium = ref.watch(isPremiumProvider).valueOrNull ?? false;
+    final globalUnlock =
+        ref.watch(premiumGlobalUnlockProvider).valueOrNull ?? false;
 
     return categoriesAsync.when(
       data: (categories) {
@@ -90,7 +93,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                isPremium ? 'プレミアム会員' : '無料会員',
+                                globalUnlock
+                                    ? 'プレミアム解放中（無料）'
+                                    : (isPremium ? 'プレミアム会員' : '無料会員'),
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: isPremium
@@ -132,8 +137,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ),
 
-                // Upgrade Banner (for free users)
-                if (!isPremium)
+                // Global premium unlock notice
+                const PremiumUnlockBanner(),
+
+                // Upgrade Banner (for free users, hidden during global unlock)
+                if (!isPremium && !globalUnlock)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                     child: GestureDetector(
