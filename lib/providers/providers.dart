@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../config/admin_config.dart';
-import '../features/form_check/form_session.dart';
 import '../main.dart' show isDemoMode;
 import '../models/app_user.dart';
 import '../models/video.dart';
@@ -353,23 +352,6 @@ final packagesProvider = FutureProvider<List<Package>>((ref) async {
     return [];
   }
   return await ref.watch(subscriptionServiceProvider).getPackages();
-});
-
-// ==================== Form check ====================
-
-/// フォーム測定の記録。新しい順。
-final formSessionsProvider =
-    StreamProvider.family<List<FormSession>, ExerciseKind?>((ref, kind) {
-  if (isDemoMode) {
-    return Stream.value(const []);
-  }
-
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return Stream.value(const []);
-
-  return ref
-      .watch(firestoreServiceProvider)
-      .formSessionsStream(user.uid, kind: kind);
 });
 
 // ==================== Videos ====================

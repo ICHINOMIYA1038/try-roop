@@ -311,12 +311,6 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   const _MenuDivider(),
                   _MenuItem(
-                    icon: Icons.straighten,
-                    title: 'フォームを測る',
-                    onTap: () => context.push('/form-check'),
-                  ),
-                  const _MenuDivider(),
-                  _MenuItem(
                     icon: Icons.dashboard_outlined,
                     title: '学習ダッシュボード',
                     onTap: () => context.push('/dashboard'),

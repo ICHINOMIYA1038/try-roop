@@ -78,8 +78,6 @@ dependencies:
 
   # External URL launcher (used for Privacy Policy / Terms links)
   url_launcher: ^6.3.1
-  google_mlkit_pose_detection: ^0.16.1
-  camera: ^0.12.1
 
 dev_dependencies:
   flutter_test:

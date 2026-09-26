@@ -286,20 +286,6 @@ class _AllVideosTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 測定機能は動画一覧の読み込みに左右されないようにする。
-    // 以前は data の中にあったため、一覧が失敗すると入口ごと消えていた。
-    return Column(
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 20, bottom: 4),
-          child: _FormCheckBanner(),
-        ),
-        Expanded(child: _buildVideoList(context, ref)),
-      ],
-    );
-  }
-
-  Widget _buildVideoList(BuildContext context, WidgetRef ref) {
     final videosAsync = ref.watch(videosProvider);
     final freeTextLessons = ref.watch(freeTextLessonsProvider);
     final eventsAsync = ref.watch(eventsProvider);
@@ -965,56 +951,3 @@ class _VideoComingSoonSection extends StatelessWidget {
   }
 }
 
-/// ホームからフォーム測定に入る導線。
-class _FormCheckBanner extends StatelessWidget {
-  const _FormCheckBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: InkWell(
-        onTap: () => context.push('/form-check'),
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFFFF8A3D), Color(0xFFFF6B35)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.straighten, color: Colors.white, size: 36),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'フォームを測る',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'カメラに映すだけ。回数と到達点を記録します',
-                      style: TextStyle(color: Colors.white, fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right, color: Colors.white),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
