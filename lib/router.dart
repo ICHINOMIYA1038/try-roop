@@ -59,7 +59,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
 
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/subscription',
     redirect: (context, state) {
       // Skip authentication in demo mode
       if (isDemoMode) {
