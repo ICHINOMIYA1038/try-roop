@@ -66,8 +66,23 @@ Apple Silicon の Mac では、シミュレータ実行時に arm64 が除外さ
 iOS 13 が動く端末（iPhone 6s 以降）はすべて 15.5 も動くため、
 対応端末は減らない。更新していない利用者だけが影響を受ける。
 
-**アプリのサイズが増える。** ML Kit の姿勢推定モデルを同梱するため。
-提出前に App Store Connect でダウンロードサイズを確認すること。
+**アプリのサイズが大きく増える。** `flutter build ios --release` で実測した
+ところ、Runner.app は 100MB。内訳は次のとおり。
+
+| 中身 | サイズ |
+| --- | --- |
+| Runner 本体（ML Kit の静的ライブラリを含む） | 52MB |
+| MLKitPoseDetectionAccurate のモデル | 9MB |
+| MLKitPoseDetectionFast のモデル | 6MB |
+| その他の MLKit リソース | 2MB |
+| Frameworks 一式 | 33MB |
+
+これは配信前の値で、App Store の実際のダウンロードサイズは端末ごとの
+絞り込みと圧縮でこれより小さくなる。提出後に App Store Connect の
+「App サイズ」で確認すること。
+
+速い方のモデルだけで足りる場合、Accurate の 9MB は削れる余地があるが、
+プラグインの podspec が両方を要求しているため、そのままでは外せない。
 
 **映像は端末の外に出ない。** 骨格検出はオンデバイスで、保存するのは
 回数と数値だけ。画像も動画も送信しないので、プライバシー表示に
