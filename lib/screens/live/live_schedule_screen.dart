@@ -153,13 +153,13 @@ class _ArchiveTab extends ConsumerWidget {
   }
 }
 
-class _ScheduleTile extends StatelessWidget {
+class _ScheduleTile extends ConsumerWidget {
   final LiveSchedule schedule;
 
   const _ScheduleTile({required this.schedule});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
@@ -195,19 +195,27 @@ class _ScheduleTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 12),
               ),
-        trailing: schedule.isLive
+        trailing: schedule.isLiveNow
             ? const Chip(
                 label: Text('配信中', style: TextStyle(color: Colors.white)),
                 backgroundColor: Color(0xFFE53935),
                 visualDensity: VisualDensity.compact,
               )
             : const Icon(Icons.open_in_new, size: 18),
-        onTap: () => _open(context),
+        onTap: () => _open(context, ref),
       ),
     );
   }
 
-  Future<void> _open(BuildContext context) async {
+  Future<void> _open(BuildContext context, WidgetRef ref) async {
+    final canJoin =
+        schedule.isFree || (ref.read(isPremiumProvider).value ?? false);
+    if (!canJoin) {
+      AnalyticsService.paywallBlocked('live', schedule.id);
+      context.push('/subscription');
+      return;
+    }
+
     final url = schedule.streamUrl;
     if (url == null || url.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -215,7 +223,7 @@ class _ScheduleTile extends StatelessWidget {
       );
       return;
     }
-    AnalyticsService.liveJoined(schedule.id, live: schedule.isLive);
+    AnalyticsService.liveJoined(schedule.id, live: schedule.isLiveNow);
     await openExternalUrl(context, url);
   }
 }

@@ -30,6 +30,7 @@ type LiveSchedule = {
   thumbnailUrl: string | null;
   streamUrl: string | null;
   archiveVideoId: string | null;
+  isFree: boolean;
   status: Status;
   createdAt: string;
 };
@@ -43,6 +44,7 @@ type FormState = {
   thumbnailUrl: string;
   streamUrl: string;
   archiveVideoId: string;
+  isFree: boolean;
   status: Status;
 };
 
@@ -55,6 +57,7 @@ const emptyForm: FormState = {
   thumbnailUrl: "",
   streamUrl: "",
   archiveVideoId: "",
+  isFree: false,
   status: "scheduled",
 };
 
@@ -91,6 +94,7 @@ export default function LiveSchedulesPage() {
           description: data.description ?? "",
           scheduledAt: isoFromAny(data.scheduledAt),
           archiveVideoId: data.archiveVideoId ?? null,
+          isFree: data.isFree === true,
           duration: data.duration ?? 60,
           thumbnailUrl: data.thumbnailUrl ?? null,
           streamUrl: data.streamUrl ?? null,
@@ -119,6 +123,7 @@ export default function LiveSchedulesPage() {
       thumbnailUrl: s.thumbnailUrl ?? "",
       streamUrl: s.streamUrl ?? "",
       archiveVideoId: s.archiveVideoId ?? "",
+      isFree: s.isFree === true,
       status: s.status,
     });
   const reset = () => setForm({ ...emptyForm, scheduledAtLocal: toLocalInput(new Date()) });
@@ -145,6 +150,7 @@ export default function LiveSchedulesPage() {
         thumbnailUrl: form.thumbnailUrl.trim() || null,
         streamUrl: form.streamUrl.trim() || null,
         archiveVideoId: form.archiveVideoId.trim() || null,
+        isFree: form.isFree,
         status: form.status,
         createdAt,
       });
@@ -351,6 +357,20 @@ export default function LiveSchedulesPage() {
               className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] focus:outline-none focus:border-[var(--color-brand)]"
             />
           </div>
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.isFree}
+              onChange={(e) => setForm({ ...form, isFree: e.target.checked })}
+              className="mt-1 accent-[var(--color-brand)]"
+            />
+            <span>
+              この回は無料で参加できるようにする
+              <span className="block text-xs text-[var(--color-text-muted)]">
+                既定では有料会員のみ。集客のために開放したい回だけチェック。
+              </span>
+            </span>
+          </label>
           <div>
             <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">
               見逃し配信の動画ID (任意)

@@ -11,6 +11,10 @@ class LiveSchedule {
 
   /// 配信が終わったあとのアーカイブ動画。見逃し配信で使う。
   final String? archiveVideoId;
+
+  /// 無料で参加できる回か。既定は有料（プレミアム限定）。
+  /// 集客のために特定の回だけ開放したいときに使う。
+  final bool isFree;
   final LiveStatus status;
   final DateTime createdAt;
 
@@ -23,6 +27,7 @@ class LiveSchedule {
     this.thumbnailUrl,
     this.streamUrl,
     this.archiveVideoId,
+    this.isFree = false,
     required this.status,
     required this.createdAt,
   });
@@ -37,6 +42,7 @@ class LiveSchedule {
       thumbnailUrl: map['thumbnailUrl'],
       streamUrl: map['streamUrl'],
       archiveVideoId: map['archiveVideoId'],
+      isFree: map['isFree'] ?? false,
       status: LiveStatus.values.firstWhere(
         (e) => e.name == map['status'],
         orElse: () => LiveStatus.scheduled,
@@ -54,12 +60,29 @@ class LiveSchedule {
       'thumbnailUrl': thumbnailUrl,
       'streamUrl': streamUrl,
       'archiveVideoId': archiveVideoId,
+      'isFree': isFree,
       'status': status.name,
       'createdAt': createdAt.toIso8601String(),
     };
   }
 
   bool get isLive => status == LiveStatus.live;
+
+  /// 時刻から見て、いま配信中とみなせるか。
+  ///
+  /// 運営が配信のたびに状態を切り替えるのは手間なので、開始時刻から
+  /// 終了予定までは配信中として扱う。状態が明示的に「配信中」なら
+  /// それを優先する（予定より早く始めた・延びた場合のため）。
+  bool get isLiveNow {
+    if (status == LiveStatus.ended) return false;
+    if (status == LiveStatus.live) return true;
+
+    final now = DateTime.now();
+    // 少し早く入れるよう、開始の5分前から。
+    final opens = scheduledAt.subtract(const Duration(minutes: 5));
+    final closes = scheduledAt.add(Duration(minutes: duration));
+    return now.isAfter(opens) && now.isBefore(closes);
+  }
   bool get isScheduled => status == LiveStatus.scheduled;
   bool get isEnded => status == LiveStatus.ended;
 

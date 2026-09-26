@@ -30,7 +30,7 @@ class TodayLiveBanner extends ConsumerWidget {
         if (schedules.isEmpty) return const _NoLiveToday();
         // 配信中があればそれを最優先で見せる。
         final live = schedules.firstWhere(
-          (s) => s.isLive,
+          (s) => s.isLiveNow,
           orElse: () => schedules.first,
         );
         return _LiveCard(schedule: live, moreCount: schedules.length - 1);
@@ -62,7 +62,7 @@ class _LiveCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isLive = schedule.isLive;
+    final isLive = schedule.isLiveNow;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -133,7 +133,16 @@ class _LiveCard extends ConsumerWidget {
                       foregroundColor: const Color(0xFF433D39),
                       padding: const EdgeInsets.symmetric(vertical: 13),
                     ),
-                    child: Text(isLive ? 'いま参加する' : '配信ページを開く'),
+                    child: Consumer(
+                      builder: (context, ref, _) {
+                        final premium =
+                            ref.watch(isPremiumProvider).value ?? false;
+                        if (!schedule.isFree && !premium) {
+                          return const Text('プレミアムで参加する');
+                        }
+                        return Text(isLive ? 'いま参加する' : '配信ページを開く');
+                      },
+                    ),
                   ),
                 ),
                 if (moreCount > 0) ...[
@@ -155,6 +164,15 @@ class _LiveCard extends ConsumerWidget {
   }
 
   Future<void> _join(BuildContext context, WidgetRef ref) async {
+    // LIVE は月額の中心なので、無料開放している回以外は課金者だけ。
+    final canJoin = schedule.isFree ||
+        (ref.read(isPremiumProvider).value ?? false);
+    if (!canJoin) {
+      AnalyticsService.paywallBlocked('live', schedule.id);
+      context.push('/subscription');
+      return;
+    }
+
     final url = schedule.streamUrl;
     if (url == null || url.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -162,7 +180,7 @@ class _LiveCard extends ConsumerWidget {
       );
       return;
     }
-    AnalyticsService.liveJoined(schedule.id, live: schedule.isLive);
+    AnalyticsService.liveJoined(schedule.id, live: schedule.isLiveNow);
     _recordTry(ref);
     await openExternalUrl(context, url);
   }
