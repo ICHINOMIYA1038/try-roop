@@ -840,18 +840,42 @@ class FirestoreService {
         .toList();
   }
 
+  /// これから始まる配信。
+  ///
+  /// 日時は Timestamp と ISO 文字列が混在しているため、Firestore 側で
+  /// 範囲比較すると必ず空になる（型をまたいだ比較は成立しない）。
+  /// 件数が少ないコレクションなので、取得してから絞る。
   Future<List<LiveSchedule>> getUpcomingLiveSchedules({int limit = 5}) async {
     final snapshot = await _db
         .collection('liveSchedules')
         .where('status', isEqualTo: LiveStatus.scheduled.name)
-        .where('scheduledAt', isGreaterThan: DateTime.now().toIso8601String())
-        .orderBy('scheduledAt')
-        .limit(limit)
         .get();
+
+    final now = DateTime.now();
+    final upcoming = snapshot.docs
+        .map((doc) => LiveSchedule.fromMap(doc.data(), doc.id))
+        .where((l) => l.scheduledAt.isAfter(now))
+        .toList()
+      ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+
+    return upcoming.take(limit).toList();
+  }
+
+  /// 今日ぶんの配信。開始前・配信中の両方を含む。
+  Future<List<LiveSchedule>> getTodayLiveSchedules() async {
+    final snapshot = await _db.collection('liveSchedules').get();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
 
     return snapshot.docs
         .map((doc) => LiveSchedule.fromMap(doc.data(), doc.id))
-        .toList();
+        .where((l) =>
+            l.status != LiveStatus.ended &&
+            l.scheduledAt.isAfter(today) &&
+            l.scheduledAt.isBefore(tomorrow))
+        .toList()
+      ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
   }
 
   Stream<List<LiveSchedule>> liveSchedulesStream() {
@@ -940,34 +964,37 @@ class FirestoreService {
     return Event.fromMap(doc.data()!, eventId);
   }
 
+  /// これから開催されるイベント。日時の型が混在しているため、
+  /// liveSchedules と同じく取得してから絞る。
   Future<List<Event>> getUpcomingEvents({int limit = 10}) async {
     final snapshot = await _db
         .collection('events')
         .where('status', isEqualTo: EventStatus.scheduled.name)
-        .where('startAt', isGreaterThan: DateTime.now().toIso8601String())
-        .orderBy('startAt')
-        .limit(limit)
         .get();
 
-    return snapshot.docs
+    final now = DateTime.now();
+    final upcoming = snapshot.docs
         .map((doc) => Event.fromMap(doc.data(), doc.id))
-        .toList();
+        .where((e) => e.startAt.isAfter(now))
+        .toList()
+      ..sort((a, b) => a.startAt.compareTo(b.startAt));
+
+    return upcoming.take(limit).toList();
   }
 
   Future<List<Event>> getEventsByMonth(DateTime month) async {
     final startOfMonth = DateTime(month.year, month.month, 1);
     final endOfMonth = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
 
-    final snapshot = await _db
-        .collection('events')
-        .where('startAt', isGreaterThanOrEqualTo: startOfMonth.toIso8601String())
-        .where('startAt', isLessThanOrEqualTo: endOfMonth.toIso8601String())
-        .orderBy('startAt')
-        .get();
+    // 日時の型が混在しているため Firestore 側で範囲を絞れない。
+    final snapshot = await _db.collection('events').get();
 
     return snapshot.docs
         .map((doc) => Event.fromMap(doc.data(), doc.id))
-        .toList();
+        .where((e) =>
+            !e.startAt.isBefore(startOfMonth) && !e.startAt.isAfter(endOfMonth))
+        .toList()
+      ..sort((a, b) => a.startAt.compareTo(b.startAt));
   }
 
   // ==================== Event Participations ====================

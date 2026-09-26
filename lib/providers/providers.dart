@@ -83,7 +83,7 @@ List<Post> demoPosts = [
     authorId: 'demo_user',
     authorName: 'サロン運営',
     authorPhotoUrl: null,
-    content: '皆さん、TryRoop Campus Live へようこそ！\n\nこのコミュニティでは、健康・フィットネス・AIについて一緒に学んでいきましょう。質問や感想があればお気軽に投稿してください！',
+    content: '皆さん、Try Loop へようこそ！\n\nこのコミュニティでは、健康・フィットネス・AIについて一緒に学んでいきましょう。質問や感想があればお気軽に投稿してください！',
     imageUrls: [],
     likeCount: 42,
     commentCount: 5,
@@ -335,10 +335,29 @@ final isPremiumProvider = StreamProvider<bool>((ref) {
   });
 });
 
-/// 動画に対して「いま見られるか」を返す。無料動画は誰でも見られる。
+/// 動画に対して「いま見られるか」を返す。
+///
+/// 事業計画の「各講座の第1回のみ無料」に合わせて、次の順で判定する。
+///   1. 課金していれば全部見られる
+///   2. 動画自体が無料指定なら見られる
+///   3. どこかの講座の第1回なら見られる（お試し）
 final canAccessVideoProvider = Provider.family<bool, Video>((ref, video) {
+  if (ref.watch(isPremiumProvider).value ?? false) return true;
   if (video.isFree) return true;
-  return ref.watch(isPremiumProvider).value ?? false;
+  return ref.watch(isFirstEpisodeProvider(video.id));
+});
+
+/// その動画が、どれかの講座の第1回かどうか。
+///
+/// 講座に入っていない単発の動画は対象外（無料指定でない限り有料）。
+final isFirstEpisodeProvider = Provider.family<bool, String>((ref, videoId) {
+  final courses = ref.watch(coursesProvider).value ?? const [];
+  for (final course in courses) {
+    if (course.videoIds.isNotEmpty && course.videoIds.first == videoId) {
+      return true;
+    }
+  }
+  return false;
 });
 
 /// テキストレッスンに対して「いま読めるか」を返す。
@@ -668,6 +687,15 @@ final upcomingLiveSchedulesProvider = FutureProvider<List<LiveSchedule>>((ref) a
     return _demoLiveSchedules.where((l) => l.isUpcoming).toList();
   }
   return await ref.watch(firestoreServiceProvider).getUpcomingLiveSchedules();
+});
+
+/// 今日ぶんの配信。ホームの「本日のLIVE」で使う。
+final todayLiveSchedulesProvider =
+    FutureProvider<List<LiveSchedule>>((ref) async {
+  if (isDemoMode) {
+    return _demoLiveSchedules;
+  }
+  return await ref.watch(firestoreServiceProvider).getTodayLiveSchedules();
 });
 
 final currentLiveProvider = FutureProvider<LiveSchedule?>((ref) async {

@@ -12,11 +12,11 @@ const notoSansJP = Noto_Sans_JP({
 export const metadata: Metadata = {
   metadataBase: new URL("https://try-roop.com"),
   title: {
-    default: "TryRoop Campus Live",
-    template: "%s | TryRoop Campus Live",
+    default: "Try Loop",
+    template: "%s | Try Loop",
   },
   description:
-    "TryRoop Campus Live は、空手・筋トレ・健康・AI など暮らしに役立つ学習コンテンツを動画とテキストで届けるモバイル学習アプリです。",
+    "Try Loop は、筋トレ・ボクササイズ・韓国語などの15分LIVE講座に、スマホから気軽に挑戦できるサブスクリプションサービスです。",
   keywords: [
     "学習アプリ",
     "オンライン学習",
@@ -29,8 +29,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ja_JP",
-    siteName: "TryRoop Campus Live",
-    title: "TryRoop Campus Live",
+    siteName: "Try Loop",
+    title: "Try Loop",
     description:
       "空手・筋トレ・健康・AI を、動画とテキストで自分のペースで学べるモバイルアプリ",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],

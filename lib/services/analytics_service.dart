@@ -65,6 +65,10 @@ class AnalyticsService {
   static Future<void> shared(String contentType, String contentId) =>
       _log('share', {'content_type': contentType, 'item_id': contentId});
 
+  /// LIVE への参加。Try Loop の中心機能なので、配信中と予定で分けて見る。
+  static Future<void> liveJoined(String scheduleId, {required bool live}) =>
+      _log('live_join', {'schedule_id': scheduleId, 'is_live': live});
+
   static Future<void> searched(String query) =>
       _log('search', {'search_term': query});
 }

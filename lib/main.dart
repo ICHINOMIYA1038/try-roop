@@ -76,7 +76,7 @@ class MyApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'TryRoop Campus Live',
+      title: 'Try Loop',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

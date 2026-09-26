@@ -4,7 +4,7 @@ import { LegalPage } from "../components/LegalPage";
 export const metadata: Metadata = {
   title: "プライバシーポリシー",
   description:
-    "TryRoop Campus Live のプライバシーポリシー。取得する情報・利用目的・第三者提供について。",
+    "Try Loop のプライバシーポリシー。取得する情報・利用目的・第三者提供について。",
 };
 
 export default function PrivacyPolicy() {
@@ -13,7 +13,7 @@ export default function PrivacyPolicy() {
       <p>
         TryRoop（以下「当サービス」といいます）は、ユーザーの個人情報の重要性を認識し、
         個人情報の保護に関する法律（以下「個人情報保護法」といいます）を遵守します。
-        本ポリシーは、TryRoop Campus Live モバイルアプリおよび関連する Web
+        本ポリシーは、Try Loop モバイルアプリおよび関連する Web
         サービス（以下「本サービス」といいます）における個人情報の取り扱いについて定めるものです。
       </p>
 

@@ -14,7 +14,7 @@ export function Header() {
           >
             T
           </span>
-          TryRoop Campus Live
+          Try Loop
         </Link>
         <nav className="flex items-center gap-6 text-sm">
           <Link

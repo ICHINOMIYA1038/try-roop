@@ -72,6 +72,18 @@ class LiveSchedule {
     }
   }
 
+  /// 「12:00」
+  String get formattedTime =>
+      '${scheduledAt.hour.toString().padLeft(2, '0')}:'
+      '${scheduledAt.minute.toString().padLeft(2, '0')}';
+
+  /// 「10/1(水) 12:00」
+  String get formattedDateTime {
+    const week = ['月', '火', '水', '木', '金', '土', '日'];
+    return '${scheduledAt.month}/${scheduledAt.day}'
+        '(${week[scheduledAt.weekday - 1]}) $formattedTime';
+  }
+
   String get durationFormatted {
     final hours = duration ~/ 60;
     final minutes = duration % 60;

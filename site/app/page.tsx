@@ -7,16 +7,16 @@ const APP_STORE_URL = "https://apps.apple.com/jp/app/id6759759681";
 
 const features = [
   {
-    icon: "▶",
-    title: "動画レッスン",
+    icon: "●",
+    title: "15分のLIVE講座",
     description:
-      "プロ監修の動画で、空手や筋トレのフォームを正しく学ぶ。隙間時間にも繰り返し見返せます。",
+      "講師が目の前で教えます。1回15分なので、予定の合間に参加できます。",
   },
   {
-    icon: "📖",
-    title: "テキストレッスン",
+    icon: "▶",
+    title: "見逃し配信",
     description:
-      "Markdown 形式の解説で、深く理解したいトピックをじっくり学習。",
+      "LIVEに出られなくても大丈夫。終わったあとはアーカイブでいつでも見られます。",
   },
   {
     icon: "💬",
@@ -25,17 +25,17 @@ const features = [
       "学んだことを投稿して仲間と共有。質問や励ましを通じて学習を続けやすく。",
   },
   {
-    icon: "🏆",
-    title: "バッジ",
-    description: "視聴・継続・コース完了に応じてバッジを獲得。学習が習慣に。",
+    icon: "◎",
+    title: "TRYの記録",
+    description: "参加するたびに1TRY。今月何回挑戦したかが残ります。",
   },
 ];
 
 const categories = [
-  { name: "空手", emoji: "🥋", description: "基本姿勢から技まで" },
-  { name: "筋トレ", emoji: "💪", description: "自重・部位別トレーニング" },
-  { name: "健康", emoji: "🌿", description: "睡眠・ストレス管理" },
-  { name: "AI", emoji: "🤖", description: "ChatGPT・プロンプト活用" },
+  { name: "筋トレ", emoji: "💪", description: "自宅でできる初心者向け" },
+  { name: "ボクササイズ", emoji: "🥊", description: "15分で汗をかく" },
+  { name: "韓国語", emoji: "🇰🇷", description: "ゼロから順番に" },
+  { name: "これから増えます", emoji: "✨", description: "ヨガ・料理・AI など" },
 ];
 
 export default function Home() {
@@ -49,11 +49,12 @@ export default function Home() {
               T
             </span>
             <h1 className="mt-6 text-4xl md:text-6xl font-bold tracking-tight text-[var(--color-text)]">
-              学びを、自分のペースで。
+              やってみないと、
+              わからない。
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-[var(--color-text-muted)] leading-relaxed">
-              TryRoop Campus Live は、空手・筋トレ・健康・AI を、
-              動画とテキストで自分のペースで学べるモバイル学習アプリです。
+              Try Loop は、筋トレ・ボクササイズ・韓国語などの15分LIVE講座に、
+              スマホから気軽に挑戦できるサブスクリプションサービスです。
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center gap-3">
               <a
@@ -63,7 +64,7 @@ export default function Home() {
                 App Store で入手
               </a>
               <span className="text-sm text-[var(--color-text-muted)]">
-                iPhone / iPad 対応・無料ではじめられます
+                各講座の第1回は無料。iPhone / iPad 対応
               </span>
             </div>
           </div>
@@ -95,7 +96,7 @@ export default function Home() {
 
         <section className="mx-auto max-w-5xl px-6 py-20">
           <h2 className="text-3xl font-bold text-center text-[var(--color-text)]">
-            学べるカテゴリ
+            いま挑戦できること
           </h2>
           <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {categories.map((c) => (
@@ -129,9 +130,9 @@ export default function Home() {
                   まずはお試し
                 </p>
                 <ul className="mt-6 space-y-2 text-sm text-[var(--color-text-muted)]">
-                  <li>✓ 一部の動画とテキストレッスン</li>
-                  <li>✓ コミュニティ閲覧・投稿</li>
-                  <li>✓ バッジ獲得</li>
+                  <li>✓ 各講座の第1回を視聴</li>
+                  <li>✓ LIVEの予定を確認</li>
+                  <li>✓ TRYの記録</li>
                 </ul>
               </div>
               <div className="rounded-2xl border-2 border-[var(--color-brand)] p-8 bg-[var(--color-bg)] relative">
@@ -145,8 +146,8 @@ export default function Home() {
                   すべてのコンテンツへ
                 </p>
                 <ul className="mt-6 space-y-2 text-sm text-[var(--color-text-muted)]">
-                  <li>✓ プレミアム動画・レッスンが見放題</li>
-                  <li>✓ 限定ライブ配信</li>
+                  <li>✓ すべての講座が受け放題</li>
+                  <li>✓ LIVE参加と見逃し配信</li>
                   <li>✓ 無料プランの全機能</li>
                 </ul>
                 <p className="mt-4 text-xs text-[var(--color-text-muted)]">
@@ -162,7 +163,7 @@ export default function Home() {
             今日からはじめる
           </h2>
           <p className="mt-6 text-[var(--color-text-muted)] leading-relaxed">
-            ダウンロードは無料です。まずは無料のレッスンからどうぞ。
+            各講座の第1回は無料です。まずは1本、試してみてください。
           </p>
           <a
             href={APP_STORE_URL}

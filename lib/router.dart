@@ -8,6 +8,7 @@ import 'providers/providers.dart';
 import 'services/analytics_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/live/live_schedule_screen.dart';
 import 'screens/video/video_player_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/profile/subscription_screen.dart';
@@ -187,6 +188,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Subscription (modal)
+      GoRoute(
+        path: '/live',
+        builder: (context, state) => const LiveScheduleScreen(),
+      ),
+
       GoRoute(
         path: '/subscription',
         builder: (context, state) => const SubscriptionScreen(),

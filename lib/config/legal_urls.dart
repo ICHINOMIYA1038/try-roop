@@ -7,7 +7,7 @@ class LegalUrls {
   static const String privacyPolicy = 'https://try-roop.com/privacy';
   static const String termsOfService = 'https://try-roop.com/terms';
   static const String supportContact =
-      'mailto:support@try-roop.com?subject=TryRoop%20Campus%20Live%20%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6';
+      'mailto:support@try-roop.com?subject=Try%20Loop%20%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6';
 }
 
 Future<void> openExternalUrl(BuildContext context, String url) async {

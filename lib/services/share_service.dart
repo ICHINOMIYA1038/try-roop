@@ -10,13 +10,13 @@ import 'analytics_service.dart';
 /// 行き先を付ける。
 class ShareService {
   static Future<void> shareVideo(String title) =>
-      _share('video', title, '「$title」を try-roop で見ています。');
+      _share('video', title, '「$title」を Try Loop で見ています。');
 
   static Future<void> shareLesson(String title) =>
-      _share('lesson', title, '「$title」を try-roop で読みました。');
+      _share('lesson', title, '「$title」を Try Loop で読みました。');
 
   static Future<void> shareApp() =>
-      _share('app', 'app', '空手の基本を動画とテキストで学べるアプリです。');
+      _share('app', 'app', '筋トレ・ボクササイズ・韓国語を15分のLIVEで学べるアプリです。');
 
   static Future<void> _share(
     String type,

@@ -11,6 +11,7 @@ import '../../models/text_lesson.dart';
 import '../../models/event.dart';
 import '../../widgets/video_card.dart';
 import '../../widgets/error_view.dart';
+import '../../widgets/today_live_banner.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -300,6 +301,11 @@ class _AllVideosTab extends ConsumerWidget {
         return ListView(
           padding: const EdgeInsets.symmetric(vertical: 20),
           children: [
+            // Try Loop は LIVE が中心なので、開いた時点で今日の配信が分かる
+            // ようにする。
+            const TodayLiveBanner(),
+            const SizedBox(height: 24),
+
             // Free Videos Section
             if (!FeatureFlags.isVideoContentEnabled) ...[
               // Coming Soon placeholder for video content

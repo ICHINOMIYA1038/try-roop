@@ -13,7 +13,7 @@ export function Footer() {
             >
               T
             </span>
-            TryRoop Campus Live
+            Try Loop
           </div>
           <p className="mt-3 text-[var(--color-text-muted)] leading-relaxed">
             空手・筋トレ・健康・AI を、動画とテキストで自分のペースで学べる学習アプリ。
@@ -62,7 +62,7 @@ export function Footer() {
       </div>
       <div className="border-t border-[var(--color-border)] py-4">
         <p className="text-center text-xs text-[var(--color-text-muted)]">
-          © {year} TryRoop Campus Live. All rights reserved.
+          © {year} Try Loop. All rights reserved.
         </p>
       </div>
     </footer>

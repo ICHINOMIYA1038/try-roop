@@ -4,7 +4,7 @@ import { LegalPage } from "../components/LegalPage";
 export const metadata: Metadata = {
   title: "利用規約",
   description:
-    "TryRoop Campus Live の利用規約。サービス内容、禁止事項、サブスクリプション、責任範囲について。",
+    "Try Loop の利用規約。サービス内容、禁止事項、サブスクリプション、責任範囲について。",
 };
 
 export default function TermsOfService() {
