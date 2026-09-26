@@ -40,6 +40,9 @@ ProviderContainer _container({required bool premium}) {
   final container = ProviderContainer(
     overrides: [
       isPremiumProvider.overrideWith((ref) => Stream.value(premium)),
+      // 動画の判定は「どれかの講座の第1回か」も見るようになったので、
+      // 講座も差し替えておく。ここでは第1回にあたる動画は無い。
+      coursesProvider.overrideWith((ref) => Stream.value(const [])),
     ],
   );
   addTearDown(container.dispose);
@@ -53,6 +56,7 @@ void main() {
     test('無料の動画は課金していなくても見られる', () async {
       final container = _container(premium: false);
       await container.read(isPremiumProvider.future);
+      await container.read(coursesProvider.future);
 
       expect(
         container.read(canAccessVideoProvider(_video(AccessLevel.free))),
@@ -63,6 +67,7 @@ void main() {
     test('有料の動画は課金していないと見られない', () async {
       final container = _container(premium: false);
       await container.read(isPremiumProvider.future);
+      await container.read(coursesProvider.future);
 
       expect(
         container.read(canAccessVideoProvider(_video(AccessLevel.premium))),
@@ -73,6 +78,7 @@ void main() {
     test('課金していれば有料の動画も見られる', () async {
       final container = _container(premium: true);
       await container.read(isPremiumProvider.future);
+      await container.read(coursesProvider.future);
 
       expect(
         container.read(canAccessVideoProvider(_video(AccessLevel.premium))),
@@ -83,6 +89,7 @@ void main() {
     test('有料のレッスンは課金していないと読めない', () async {
       final container = _container(premium: false);
       await container.read(isPremiumProvider.future);
+      await container.read(coursesProvider.future);
 
       expect(
         container.read(canAccessLessonProvider(_lesson(AccessLevel.premium))),
@@ -99,6 +106,7 @@ void main() {
         overrides: [
           // 値が流れてこない = 読み込み中
           isPremiumProvider.overrideWith((ref) => const Stream<bool>.empty()),
+          coursesProvider.overrideWith((ref) => Stream.value(const [])),
         ],
       );
       addTearDown(container.dispose);
