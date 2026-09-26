@@ -286,6 +286,20 @@ class _AllVideosTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 測定機能は動画一覧の読み込みに左右されないようにする。
+    // 以前は data の中にあったため、一覧が失敗すると入口ごと消えていた。
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 20, bottom: 4),
+          child: _FormCheckBanner(),
+        ),
+        Expanded(child: _buildVideoList(context, ref)),
+      ],
+    );
+  }
+
+  Widget _buildVideoList(BuildContext context, WidgetRef ref) {
     final videosAsync = ref.watch(videosProvider);
     final freeTextLessons = ref.watch(freeTextLessonsProvider);
     final eventsAsync = ref.watch(eventsProvider);
@@ -300,10 +314,6 @@ class _AllVideosTab extends ConsumerWidget {
         return ListView(
           padding: const EdgeInsets.symmetric(vertical: 20),
           children: [
-            // フォーム測定。アプリを開く理由になる機能なので上に置く。
-            const _FormCheckBanner(),
-            const SizedBox(height: 24),
-
             // Free Videos Section
             if (!FeatureFlags.isVideoContentEnabled) ...[
               // Coming Soon placeholder for video content

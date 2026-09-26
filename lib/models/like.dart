@@ -1,3 +1,5 @@
+import 'firestore_date.dart';
+
 class Like {
   final String id;
   final String userId;
@@ -22,7 +24,7 @@ class Like {
         orElse: () => LikeTargetType.post,
       ),
       targetId: map['targetId'] ?? '',
-      createdAt: DateTime.parse(map['createdAt']),
+      createdAt: parseDate(map['createdAt']),
     );
   }
 

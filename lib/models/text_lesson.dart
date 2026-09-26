@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'video.dart' show AccessLevel;
+import 'firestore_date.dart';
 
 class TextLesson {
   final String id;
@@ -45,16 +46,9 @@ class TextLesson {
         (e) => e.name == map['accessLevel'],
         orElse: () => AccessLevel.free,
       ),
-      createdAt: _parseDateTime(map['createdAt']),
-      updatedAt: _parseDateTime(map['updatedAt']),
+      createdAt: parseDate(map['createdAt']),
+      updatedAt: parseDate(map['updatedAt']),
     );
-  }
-
-  static DateTime _parseDateTime(dynamic value) {
-    if (value == null) return DateTime.now();
-    if (value is Timestamp) return value.toDate();
-    if (value is String) return DateTime.parse(value);
-    return DateTime.now();
   }
 
   Map<String, dynamic> toMap() {

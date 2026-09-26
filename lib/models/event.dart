@@ -1,3 +1,5 @@
+import 'firestore_date.dart';
+
 enum EventType {
   online,
   offline,
@@ -57,8 +59,8 @@ class Event {
         (e) => e.name == map['eventType'],
         orElse: () => EventType.offline,
       ),
-      startAt: DateTime.parse(map['startAt']),
-      endAt: DateTime.parse(map['endAt']),
+      startAt: parseDate(map['startAt']),
+      endAt: parseDate(map['endAt']),
       capacity: map['capacity'] ?? 0,
       currentParticipants: map['currentParticipants'] ?? 0,
       location: map['location'],
@@ -69,11 +71,9 @@ class Event {
         orElse: () => EventStatus.scheduled,
       ),
       requiresRegistration: map['requiresRegistration'] ?? true,
-      registrationDeadline: map['registrationDeadline'] != null
-          ? DateTime.parse(map['registrationDeadline'])
-          : null,
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      registrationDeadline: parseDateOrNull(map['registrationDeadline']),
+      createdAt: parseDate(map['createdAt']),
+      updatedAt: parseDate(map['updatedAt']),
     );
   }
 

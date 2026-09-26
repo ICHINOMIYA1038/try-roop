@@ -1,3 +1,5 @@
+import 'firestore_date.dart';
+
 class Video {
   final String id;
   final String title;
@@ -39,8 +41,8 @@ class Video {
       ),
       categoryId: map['categoryId'],
       order: map['order'] ?? 0,
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      createdAt: parseDate(map['createdAt']),
+      updatedAt: parseDate(map['updatedAt']),
     );
   }
 

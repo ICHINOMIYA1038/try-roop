@@ -1,3 +1,5 @@
+import 'firestore_date.dart';
+
 class Course {
   final String id;
   final String title;
@@ -42,8 +44,8 @@ class Course {
         orElse: () => CourseDifficulty.beginner,
       ),
       isPublished: map['isPublished'] ?? false,
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      createdAt: parseDate(map['createdAt']),
+      updatedAt: parseDate(map['updatedAt']),
     );
   }
 

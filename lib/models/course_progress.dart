@@ -1,3 +1,5 @@
+import 'firestore_date.dart';
+
 class CourseProgress {
   final String id;
   final String userId;
@@ -27,10 +29,8 @@ class CourseProgress {
       completedVideoIds: List<String>.from(map['completedVideoIds'] ?? []),
       progressPercent: (map['progressPercent'] ?? 0).toDouble(),
       isCompleted: map['isCompleted'] ?? false,
-      completedAt: map['completedAt'] != null
-          ? DateTime.parse(map['completedAt'])
-          : null,
-      updatedAt: DateTime.parse(map['updatedAt']),
+      completedAt: parseDateOrNull(map['completedAt']),
+      updatedAt: parseDate(map['updatedAt']),
     );
   }
 

@@ -1,3 +1,5 @@
+import 'firestore_date.dart';
+
 class Announcement {
   final String id;
   final String title;
@@ -22,7 +24,7 @@ class Announcement {
       content: map['content'] ?? '',
       imageUrl: map['imageUrl'],
       isPublished: map['isPublished'] ?? false,
-      createdAt: DateTime.parse(map['createdAt']),
+      createdAt: parseDate(map['createdAt']),
     );
   }
 

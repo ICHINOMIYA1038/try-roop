@@ -1,3 +1,5 @@
+import 'firestore_date.dart';
+
 class VideoProgress {
   final String id;
   final String uid;
@@ -22,7 +24,7 @@ class VideoProgress {
       videoId: map['videoId'] ?? '',
       currentTime: map['currentTime'] ?? 0,
       completed: map['completed'] ?? false,
-      updatedAt: DateTime.parse(map['updatedAt']),
+      updatedAt: parseDate(map['updatedAt']),
     );
   }
 

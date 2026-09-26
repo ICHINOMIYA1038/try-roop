@@ -1,3 +1,5 @@
+import 'firestore_date.dart';
+
 class Comment {
   final String id;
   final CommentTargetType targetType;
@@ -39,8 +41,8 @@ class Comment {
       content: map['content'] ?? '',
       likeCount: map['likeCount'] ?? 0,
       parentId: map['parentId'],
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      createdAt: parseDate(map['createdAt']),
+      updatedAt: parseDate(map['updatedAt']),
     );
   }
 

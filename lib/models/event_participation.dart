@@ -1,3 +1,5 @@
+import 'firestore_date.dart';
+
 enum ParticipationStatus {
   confirmed,
   waitlisted,
@@ -33,10 +35,8 @@ class EventParticipation {
         orElse: () => ParticipationStatus.confirmed,
       ),
       waitlistPosition: map['waitlistPosition'] ?? 0,
-      registeredAt: DateTime.parse(map['registeredAt']),
-      cancelledAt: map['cancelledAt'] != null
-          ? DateTime.parse(map['cancelledAt'])
-          : null,
+      registeredAt: parseDate(map['registeredAt']),
+      cancelledAt: parseDateOrNull(map['cancelledAt']),
     );
   }
 

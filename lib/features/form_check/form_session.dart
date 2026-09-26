@@ -1,4 +1,5 @@
 import 'pose_metrics.dart';
+import '../../models/firestore_date.dart';
 
 /// 測定した種目。
 enum ExerciseKind {
@@ -72,7 +73,7 @@ class FormSession {
       bestValue: (map['bestValue'] as num?)?.toDouble(),
       leftValue: (map['leftValue'] as num?)?.toDouble(),
       rightValue: (map['rightValue'] as num?)?.toDouble(),
-      recordedAt: DateTime.parse(map['recordedAt']),
+      recordedAt: parseDate(map['recordedAt']),
     );
   }
 

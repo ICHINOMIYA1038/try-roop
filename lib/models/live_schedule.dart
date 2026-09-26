@@ -1,3 +1,5 @@
+import 'firestore_date.dart';
+
 class LiveSchedule {
   final String id;
   final String title;
@@ -26,7 +28,7 @@ class LiveSchedule {
       id: id,
       title: map['title'] ?? '',
       description: map['description'] ?? '',
-      scheduledAt: DateTime.parse(map['scheduledAt']),
+      scheduledAt: parseDate(map['scheduledAt']),
       duration: map['duration'] ?? 60,
       thumbnailUrl: map['thumbnailUrl'],
       streamUrl: map['streamUrl'],
@@ -34,7 +36,7 @@ class LiveSchedule {
         (e) => e.name == map['status'],
         orElse: () => LiveStatus.scheduled,
       ),
-      createdAt: DateTime.parse(map['createdAt']),
+      createdAt: parseDate(map['createdAt']),
     );
   }
 

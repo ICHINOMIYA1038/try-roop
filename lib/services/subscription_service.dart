@@ -35,6 +35,15 @@ class SubscriptionService {
     await Purchases.logOut();
   }
 
+  /// 匿名のときは何もしない。
+  ///
+  /// RevenueCat は匿名の状態で logOut を呼ぶと例外を投げる。起動直後は
+  /// 必ず匿名なので、そのまま呼ぶと毎回エラーが出る。
+  Future<void> logoutIfIdentified() async {
+    if (await Purchases.isAnonymous) return;
+    await Purchases.logOut();
+  }
+
   // Check if user has premium access
   Future<bool> isPremium() async {
     try {

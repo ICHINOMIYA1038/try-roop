@@ -299,7 +299,9 @@ final revenueCatIdentityProvider = Provider<void>((ref) {
     final user = next.value;
     AnalyticsService.setUser(user?.uid);
     if (user == null) {
-      subscriptionService.logout().catchError((Object e) {
+      // すでに匿名のまま logout すると RevenueCat が例外を投げる。
+      // 起動直後に必ず通る道なので、匿名でないときだけ呼ぶ。
+      subscriptionService.logoutIfIdentified().catchError((Object e) {
         debugPrint('RevenueCat logout failed: $e');
       });
     } else {

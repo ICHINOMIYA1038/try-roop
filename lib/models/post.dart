@@ -1,3 +1,5 @@
+import 'firestore_date.dart';
+
 class Post {
   final String id;
   final String authorId;
@@ -36,8 +38,8 @@ class Post {
       likeCount: map['likeCount'] ?? 0,
       commentCount: map['commentCount'] ?? 0,
       isPinned: map['isPinned'] ?? false,
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      createdAt: parseDate(map['createdAt']),
+      updatedAt: parseDate(map['updatedAt']),
     );
   }
 

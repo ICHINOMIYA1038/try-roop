@@ -1,3 +1,5 @@
+import 'firestore_date.dart';
+
 class AppUser {
   final String uid;
   final String email;
@@ -27,8 +29,8 @@ class AppUser {
         (e) => e.name == map['membershipType'],
         orElse: () => MembershipType.free,
       ),
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      createdAt: parseDate(map['createdAt']),
+      updatedAt: parseDate(map['updatedAt']),
     );
   }
 
