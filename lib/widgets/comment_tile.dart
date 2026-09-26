@@ -75,61 +75,67 @@ class CommentTile extends StatelessWidget {
                   comment.content,
                   style: const TextStyle(fontSize: 14),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    InkWell(
-                      onTap: onLike,
-                      borderRadius: BorderRadius.circular(12),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              isLiked ? Icons.favorite : Icons.favorite_border,
-                              size: 16,
-                              color: isLiked ? Colors.red : Colors.grey[600],
+                if (onLike != null || (onReply != null && !comment.isReply)) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (onLike != null)
+                        InkWell(
+                          onTap: onLike,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
                             ),
-                            if (comment.likeCount > 0) ...[
-                              const SizedBox(width: 4),
-                              Text(
-                                '${comment.likeCount}',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isLiked
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  size: 16,
+                                  color:
+                                      isLiked ? Colors.red : Colors.grey[600],
                                 ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (!comment.isReply) ...[
-                      const SizedBox(width: 8),
-                      InkWell(
-                        onTap: onReply,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          child: Text(
-                            '返信',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
+                                if (comment.likeCount > 0) ...[
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${comment.likeCount}',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                         ),
-                      ),
+                      if (onReply != null && !comment.isReply) ...[
+                        const SizedBox(width: 8),
+                        InkWell(
+                          onTap: onReply,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            child: Text(
+                              '返信',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
-                ),
+                  ),
+                ],
               ],
             ),
           ),

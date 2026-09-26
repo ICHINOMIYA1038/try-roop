@@ -99,24 +99,6 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                IconButton(
-                  icon: const Icon(Icons.image_outlined),
-                  onPressed: () {
-                    // TODO: Image picker
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('画像機能は準備中です')),
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.camera_alt_outlined),
-                  onPressed: () {
-                    // TODO: Camera
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('カメラ機能は準備中です')),
-                    );
-                  },
-                ),
                 const Spacer(),
                 Text(
                   '${_contentController.text.length}',

@@ -7,7 +7,7 @@ class FeatureFlags {
   /// Video content feature flag
   /// Set to true to enable video content
   /// Set to false to show "Coming Soon" message
-  static const bool isVideoContentEnabled = false;
+  static const bool isVideoContentEnabled = true;
 
   // Add more feature flags as needed
   // static const bool isXXXEnabled = true;

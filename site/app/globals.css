@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+:root {
+  --color-brand: #ff8a3d;
+  --color-brand-dark: #e0731e;
+  --color-bg: #f9f7f4;
+  --color-text: #433d39;
+  --color-text-muted: #756a64;
+  --color-card: #ffffff;
+  --color-border: rgba(67, 61, 57, 0.08);
+}
+
+@theme inline {
+  --color-brand: var(--color-brand);
+  --color-brand-dark: var(--color-brand-dark);
+  --color-bg: var(--color-bg);
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-card: var(--color-card);
+  --color-border: var(--color-border);
+  --font-sans: var(--font-noto-sans-jp);
+}
+
+body {
+  font-family: var(--font-noto-sans-jp), system-ui, -apple-system,
+    "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+}
