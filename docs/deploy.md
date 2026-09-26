@@ -66,7 +66,18 @@ firebase deploy --only hosting --project try-roop
 - カテゴリ: ライフスタイル → 教育
 - スクリーンショット（6.9インチが未登録。1枚目がダミー投稿になっている）
 
-## 6. ビルドと申請
+## 6. フォーム測定を入れたことによる変更
+
+- **iOS の最低動作環境が 13.0 → 15.5 に上がった**（ML Kit の要求）。
+  対応端末は減らないが、App Store Connect の対応バージョン表示が変わる。
+- **アプリのサイズが増える**。提出前にダウンロードサイズを確認すること。
+- Info.plist に `NSCameraUsageDescription` を追加済み。
+- 映像は端末の外に出ないため、プライバシー表示に「写真・ビデオ」を
+  追加する必要はない。保存しているのは回数と数値だけ。
+- Firestore に `formSessions` を追加したので、1番のルールとインデックスの
+  デプロイが必要。
+
+## 7. ビルドと申請
 
 ```sh
 cd /Users/ichinomiya/private/try-roop
@@ -75,13 +86,14 @@ flutter build ipa --dart-define=REVENUECAT_IOS_API_KEY=xxx
 
 RevenueCat の API キーは `--dart-define` で渡す（リポジトリには置かない）。
 
-## 確認すること
+## 8. 確認すること
 
 出したあとに見る場所。
 
 | 見るもの | 場所 |
 | --- | --- |
 | クラッシュ | Firebase Crashlytics（今回追加） |
+| 測定の利用 | Firebase Analytics の `form_check_start` / `form_check_save` |
 | 離脱箇所 | Firebase Analytics の `paywall_blocked` / `video_open` / `lesson_complete` |
 | 検索順位 | `scripts/asc` の iTunes Search API 計測 |
 | 評価 | App Store Connect → 評価とレビュー |

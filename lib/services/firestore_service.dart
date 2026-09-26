@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../features/form_check/form_session.dart';
 import '../models/app_user.dart';
 import '../models/video.dart';
 import '../models/chapter.dart';
@@ -167,6 +168,52 @@ class FirestoreService {
             .toList());
   }
 
+  // ==================== Form sessions ====================
+
+  Future<String> saveFormSession(FormSession session) async {
+    final doc = await _db.collection('formSessions').add(session.toMap());
+    return doc.id;
+  }
+
+  Stream<List<FormSession>> formSessionsStream(
+    String userId, {
+    ExerciseKind? kind,
+    int limit = 30,
+  }) {
+    Query<Map<String, dynamic>> query =
+        _db.collection('formSessions').where('userId', isEqualTo: userId);
+
+    if (kind != null) {
+      query = query.where('kind', isEqualTo: kind.name);
+    }
+
+    return query
+        .orderBy('recordedAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => FormSession.fromMap(doc.data(), doc.id))
+            .toList());
+  }
+
+  /// 直近の記録。前回と比べるために使う。
+  Future<FormSession?> latestFormSession(
+    String userId,
+    ExerciseKind kind,
+  ) async {
+    final snapshot = await _db
+        .collection('formSessions')
+        .where('userId', isEqualTo: userId)
+        .where('kind', isEqualTo: kind.name)
+        .orderBy('recordedAt', descending: true)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isEmpty) return null;
+    final doc = snapshot.docs.first;
+    return FormSession.fromMap(doc.data(), doc.id);
+  }
+
   // ==================== Account deletion ====================
 
   /// 退会時にその人のデータを消す。
@@ -187,6 +234,7 @@ class FirestoreService {
     await _deleteWhere('likes', 'userId', uid);
     await _deleteWhere('eventParticipations', 'userId', uid);
     await _deleteWhere('notifications', 'userId', uid);
+    await _deleteWhere('formSessions', 'userId', uid);
     await _deleteWhere('comments', 'authorId', uid);
     await _deleteWhere('posts', 'authorId', uid);
   }

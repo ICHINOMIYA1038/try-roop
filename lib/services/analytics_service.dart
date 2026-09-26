@@ -65,6 +65,14 @@ class AnalyticsService {
   static Future<void> shared(String contentType, String contentId) =>
       _log('share', {'content_type': contentType, 'item_id': contentId});
 
+  /// フォーム測定。フックとして入れた機能なので、実際に使われているか、
+  /// 記録まで到達しているかを分けて見る。
+  static Future<void> formCheckStarted(String kind) =>
+      _log('form_check_start', {'kind': kind});
+
+  static Future<void> formCheckSaved(String kind, int reps) =>
+      _log('form_check_save', {'kind': kind, 'reps': reps});
+
   static Future<void> searched(String query) =>
       _log('search', {'search_term': query});
 }

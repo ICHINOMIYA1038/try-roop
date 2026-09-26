@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'config/admin_config.dart';
+import 'features/form_check/form_check_home_screen.dart';
 import 'main.dart' show isDemoMode;
 import 'providers/providers.dart';
 import 'services/analytics_service.dart';
@@ -43,6 +44,8 @@ const _authRequiredRoutes = [
   '/dashboard',
   '/members',
   '/events',
+  // 測定の記録は本人のものなので、ログインしていないと意味がない。
+  '/form-check',
   // 管理画面。書き込みは Firestore のルールでも弾かれるが、
   // 未ログインのまま画面に入れてしまうのは避ける。
   '/admin',
@@ -187,6 +190,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Subscription (modal)
+      GoRoute(
+        path: '/form-check',
+        builder: (context, state) => const FormCheckHomeScreen(),
+      ),
+
       GoRoute(
         path: '/subscription',
         builder: (context, state) => const SubscriptionScreen(),
