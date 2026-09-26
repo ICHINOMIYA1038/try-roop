@@ -10,6 +10,7 @@ import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart'
 import '../../providers/providers.dart';
 import '../../services/analytics_service.dart';
 import 'form_check_controller.dart';
+import 'form_result_sheet.dart';
 import 'form_session.dart';
 import 'pose_adapter.dart';
 import 'pose_metrics.dart';
@@ -190,11 +191,27 @@ class _FormCheckScreenState extends ConsumerState<FormCheckScreen> {
     setState(() => _saving = true);
 
     try {
+      final session = _measurement.buildSession(uid ?? '');
+      FormSession? previous;
+
       if (uid != null) {
-        final session = _measurement.buildSession(uid);
+        // 前回と比べて見せたいので、保存する前に直近のものを取っておく。
+        previous = await ref
+            .read(firestoreServiceProvider)
+            .latestFormSession(uid, widget.kind);
         await ref.read(firestoreServiceProvider).saveFormSession(session);
         AnalyticsService.formCheckSaved(widget.kind.name, _measurement.reps);
       }
+
+      if (!mounted) return;
+
+      // 測った直後がいちばん人に見せたくなるので、ここで結果と共有を出す。
+      await FormResultSheet.show(
+        context,
+        session: session,
+        previous: previous,
+      );
+
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
