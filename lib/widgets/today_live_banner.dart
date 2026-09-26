@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../config/legal_urls.dart';
 import '../models/live_schedule.dart';
 import '../providers/providers.dart';
+import '../features/try_loop/try_record.dart';
 import '../services/analytics_service.dart';
 
 /// ホームの「本日のLIVE」。
@@ -38,14 +39,29 @@ class TodayLiveBanner extends ConsumerWidget {
   }
 }
 
-class _LiveCard extends StatelessWidget {
+class _LiveCard extends ConsumerWidget {
   final LiveSchedule schedule;
   final int moreCount;
 
   const _LiveCard({required this.schedule, required this.moreCount});
 
+  /// 参加ボタンを押したら1回の挑戦として数える。YouTube 側の視聴までは
+  /// 追えないので、ここが取れる最良の合図。
+  void _recordTry(WidgetRef ref) {
+    final uid = ref.read(currentUserProvider)?.uid;
+    if (uid == null) return;
+    ref
+        .read(firestoreServiceProvider)
+        .recordTry(
+          userId: uid,
+          kind: TryKind.live,
+          targetId: schedule.id,
+        )
+        .catchError((Object e) => debugPrint('recordTry(live) failed: $e'));
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isLive = schedule.isLive;
 
     return Padding(
@@ -111,7 +127,7 @@ class _LiveCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: FilledButton(
-                    onPressed: () => _join(context),
+                    onPressed: () => _join(context, ref),
                     style: FilledButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: const Color(0xFF433D39),
@@ -138,7 +154,7 @@ class _LiveCard extends StatelessWidget {
     );
   }
 
-  Future<void> _join(BuildContext context) async {
+  Future<void> _join(BuildContext context, WidgetRef ref) async {
     final url = schedule.streamUrl;
     if (url == null || url.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -147,6 +163,7 @@ class _LiveCard extends StatelessWidget {
       return;
     }
     AnalyticsService.liveJoined(schedule.id, live: schedule.isLive);
+    _recordTry(ref);
     await openExternalUrl(context, url);
   }
 }

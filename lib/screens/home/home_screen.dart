@@ -12,6 +12,7 @@ import '../../models/event.dart';
 import '../../widgets/video_card.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/today_live_banner.dart';
+import '../../features/try_loop/today_try_card.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -203,6 +204,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                 // 本日のLIVE。Try Loop の中心なので、カテゴリの絞り込みより前に置く。
                 const TodayLiveBanner(),
+                const SizedBox(height: 12),
+
+                // 今日のTRY。何をすればいいかを1つだけ名指しする。
+                const TodayTryCard(),
                 const SizedBox(height: 20),
 
                 // Category Tabs (Pill/Chip Style)

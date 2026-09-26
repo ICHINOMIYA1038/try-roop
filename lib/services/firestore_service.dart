@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../features/try_loop/try_record.dart';
 import '../models/app_user.dart';
 import '../models/video.dart';
 import '../models/chapter.dart';
@@ -167,6 +168,50 @@ class FirestoreService {
             .toList());
   }
 
+  // ==================== TRY ====================
+
+  /// 挑戦を1回ぶん記録する。
+  ///
+  /// 同じ日に同じものを何度開いても1回。日をまたげばまた1回になる。
+  Future<void> recordTry({
+    required String userId,
+    required TryKind kind,
+    required String targetId,
+    String? categoryId,
+  }) async {
+    final now = DateTime.now();
+    final id = TryRecord.buildId(
+      userId: userId,
+      kind: kind,
+      targetId: targetId,
+      on: now,
+    );
+
+    await _db.collection('tryRecords').doc(id).set(
+          TryRecord(
+            id: id,
+            userId: userId,
+            kind: kind,
+            targetId: targetId,
+            categoryId: categoryId,
+            completedAt: now,
+          ).toMap(),
+        );
+  }
+
+  /// その人の TRY の履歴。集計に使うので、直近ぶんをまとめて読む。
+  Stream<List<TryRecord>> tryRecordsStream(String userId, {int limit = 400}) {
+    return _db
+        .collection('tryRecords')
+        .where('userId', isEqualTo: userId)
+        .orderBy('completedAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => TryRecord.fromMap(doc.data(), doc.id))
+            .toList());
+  }
+
   // ==================== Account deletion ====================
 
   /// 退会時にその人のデータを消す。
@@ -187,6 +232,7 @@ class FirestoreService {
     await _deleteWhere('likes', 'userId', uid);
     await _deleteWhere('eventParticipations', 'userId', uid);
     await _deleteWhere('notifications', 'userId', uid);
+    await _deleteWhere('tryRecords', 'userId', uid);
     await _deleteWhere('comments', 'authorId', uid);
     await _deleteWhere('posts', 'authorId', uid);
   }
@@ -290,6 +336,14 @@ class FirestoreService {
     );
 
     if (!completed || wasCompleted) return;
+
+    // 見終えた = 1回挑戦した。
+    await recordTry(
+      userId: uid,
+      kind: TryKind.video,
+      targetId: video.id,
+      categoryId: video.categoryId,
+    );
 
     await _incrementUserStats(uid, {
       'completedVideos': FieldValue.increment(1),

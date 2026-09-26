@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../config/admin_config.dart';
+import '../features/try_loop/today_try.dart';
+import '../features/try_loop/try_record.dart';
 import '../main.dart' show isDemoMode;
 import '../models/app_user.dart';
 import '../models/video.dart';
@@ -371,6 +373,61 @@ final packagesProvider = FutureProvider<List<Package>>((ref) async {
     return [];
   }
   return await ref.watch(subscriptionServiceProvider).getPackages();
+});
+
+// ==================== TRY ====================
+
+final tryRecordsProvider = StreamProvider<List<TryRecord>>((ref) {
+  if (isDemoMode) return Stream.value(const []);
+
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Stream.value(const []);
+
+  return ref.watch(firestoreServiceProvider).tryRecordsStream(user.uid);
+});
+
+final trySummaryProvider = Provider<TrySummary>((ref) {
+  return TrySummary(ref.watch(tryRecordsProvider).value ?? const []);
+});
+
+/// 今日おすすめする挑戦。
+///
+/// 1. 今日 LIVE があれば、それ
+/// 2. まだ挑戦していないジャンルの動画（Try Loop の軸は「次に挑戦する」）
+/// 3. それも無ければ、まだ見ていない動画
+final todayTryProvider = Provider<TodayTry?>((ref) {
+  final live = ref.watch(todayLiveSchedulesProvider).value ?? const [];
+  if (live.isNotEmpty) {
+    final l = live.first;
+    return TodayTry.live(l.title, l.duration, l.id);
+  }
+
+  final videos = ref.watch(videosProvider).value ?? const [];
+  if (videos.isEmpty) return null;
+
+  final summary = ref.watch(trySummaryProvider);
+  final tried = summary.categories;
+  final doneIds = summary.records.map((r) => r.targetId).toSet();
+
+  // まだ触れていないジャンルを優先する
+  final fresh = videos.where((v) =>
+      v.categoryId != null &&
+      !tried.contains(v.categoryId) &&
+      !doneIds.contains(v.id));
+  if (fresh.isNotEmpty) {
+    final v = fresh.first;
+    return TodayTry.video(v.title, (v.duration / 60).round(), v.id,
+        isNewGenre: true);
+  }
+
+  final unseen = videos.where((v) => !doneIds.contains(v.id));
+  if (unseen.isNotEmpty) {
+    final v = unseen.first;
+    return TodayTry.video(v.title, (v.duration / 60).round(), v.id);
+  }
+
+  final v = videos.first;
+  return TodayTry.video(v.title, (v.duration / 60).round(), v.id);
 });
 
 // ==================== Videos ====================

@@ -166,6 +166,15 @@ service cloud.firestore {
         || (isSignedIn() && onlyChanges(['currentParticipants']));
     }
 
+    // TRY の記録。本人のものだけ。
+    match /tryRecords/{recordId} {
+      allow read: if missing() || isOwner(resource.data.userId) || isAdmin();
+      allow create: if isOwner(request.resource.data.userId);
+      allow update: if isOwner(resource.data.userId)
+        && request.resource.data.userId == resource.data.userId;
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
     // Event participations
     // ドキュメント ID は "{userId}_{eventId}"。自分の申込は自分で作成・更新する。
     // キャンセル時のキャンセル待ち繰り上げだけは他人の行を触る必要があるため、

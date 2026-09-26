@@ -6,6 +6,7 @@ import '../../models/text_lesson.dart';
 import '../../models/user_stats.dart';
 import '../../providers/providers.dart';
 import '../../widgets/app_markdown.dart';
+import '../../features/try_loop/try_record.dart';
 import '../../services/analytics_service.dart';
 import '../../services/review_prompt_service.dart';
 import '../../services/share_service.dart';
@@ -96,11 +97,21 @@ class _TextLessonDetailScreenState
     });
 
     try {
-      await ref.read(firestoreServiceProvider).setLessonCompleted(
-            uid: uid,
-            lessonId: widget.lessonId,
-            completed: completed,
-          );
+      final firestore = ref.read(firestoreServiceProvider);
+      await firestore.setLessonCompleted(
+        uid: uid,
+        lessonId: widget.lessonId,
+        completed: completed,
+      );
+      if (completed) {
+        final lesson = ref.read(textLessonProvider(widget.lessonId)).value;
+        await firestore.recordTry(
+          userId: uid,
+          kind: TryKind.lesson,
+          targetId: widget.lessonId,
+          categoryId: lesson?.categoryId,
+        );
+      }
       if (completed) {
         AnalyticsService.lessonCompleted(widget.lessonId);
         // 学び終えた直後は、評価をお願いするのに一番よいタイミング。

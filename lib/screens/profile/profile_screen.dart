@@ -165,6 +165,8 @@ class ProfileScreen extends ConsumerWidget {
                       fontSize: 14,
                     ),
                   ),
+                  const SizedBox(height: 20),
+                  const _TryStats(),
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -563,6 +565,53 @@ class _MenuItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// TRY の実績。計画の「今月12回TRYしました」にあたる部分。
+class _TryStats extends ConsumerWidget {
+  const _TryStats();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summary = ref.watch(trySummaryProvider);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _TryStat(label: '今月のTRY', value: '${summary.thisMonth}'),
+        _TryStat(label: '連続日数', value: '${summary.streakDays}'),
+        _TryStat(label: '挑戦ジャンル', value: '${summary.categories.length}'),
+      ],
+    );
+  }
+}
+
+class _TryStat extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _TryStat({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFFF8A3D),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: Color(0xFF8C8681)),
+        ),
+      ],
     );
   }
 }
