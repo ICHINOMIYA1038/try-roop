@@ -65,7 +65,7 @@ firebase deploy --only hosting --project try-roop
 
 ## 5. App Store Connect：掲載情報の差し替え
 
-`docs/aso-and-growth-2026-09.md` の「3. 差し替える文言」をそのまま使う。
+`docs/store-listing.md` の文言をそのまま使う。
 
 - アプリ名（いまは `try-roop-canpus`。campus の綴りが違う）
 - サブタイトル（いま空欄）
