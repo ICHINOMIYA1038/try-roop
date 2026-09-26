@@ -94,3 +94,35 @@ RevenueCat の API キーは `--dart-define` で渡す（リポジトリには�
 | 離脱箇所 | Firebase Analytics の `paywall_blocked` / `video_open` / `lesson_complete` |
 | 検索順位 | `scripts/asc` の iTunes Search API 計測 |
 | 評価 | App Store Connect → 評価とレビュー |
+
+
+## 運営の手順（管理画面）
+
+管理画面は https://try-roop.com/admin/ 。Firestore に直接書き込むので、
+アプリ側の再ビルドは不要。
+
+### LIVE を1本追加する
+
+1. `/admin/live-schedules`
+2. タイトル・日時・長さ（15分）・配信URL（YouTube 限定配信のURL）を入れる
+3. 状態は「予定」
+4. アプリのホームに「本日のLIVE」として出る。当日以外は日付で判定して出ない
+
+配信が始まったら状態を「配信中」にすると、バナーが赤になり
+「いま参加する」に変わる。
+
+### 見逃し配信にする
+
+1. 配信が終わったら `/admin/videos` でアーカイブ動画を登録する
+2. `/admin/live-schedules` で該当のLIVEを開き、状態を「終了」に
+3. 「見逃し配信の動画ID」に、1で作った動画のドキュメントIDを入れる
+4. アプリの LIVE → 見逃し配信タブに出る
+
+### 講座を作る（第1回・第2回…）
+
+1. `/admin/videos` で各回の動画を登録する
+2. `/admin/courses` で講座を作り、含める動画にチェックを入れる
+3. 「回の順番」で ↑ ↓ を押して並べ替える
+4. **先頭が第1回になり、無料で公開される**（各講座の第1回のみ無料）
+
+並び順がそのまま受講順になるので、必ず確認すること。

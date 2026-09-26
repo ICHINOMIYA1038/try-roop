@@ -175,6 +175,17 @@ export default function CoursesPage() {
     );
   };
 
+  /** videoIds の並びがそのまま第1回・第2回…になる。第1回は無料で見せる回。 */
+  const moveVideo = (index: number, delta: number) => {
+    setForm((f) => {
+      const next = [...f.videoIds];
+      const to = index + delta;
+      if (to < 0 || to >= next.length) return f;
+      [next[index], next[to]] = [next[to], next[index]];
+      return { ...f, videoIds: next };
+    });
+  };
+
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
       <section>
@@ -353,6 +364,55 @@ export default function CoursesPage() {
               className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] focus:outline-none focus:border-[var(--color-brand)]"
             />
           </div>
+          {form.videoIds.length > 0 && (
+            <div>
+              <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">
+                回の順番（第1回は無料で公開されます）
+              </label>
+              <ol className="border border-[var(--color-border)] rounded-lg divide-y divide-[var(--color-border)] bg-[var(--color-bg)]">
+                {form.videoIds.map((id, i) => {
+                  const v = videoOptions.find((x) => x.id === id);
+                  return (
+                    <li
+                      key={id}
+                      className="flex items-center gap-2 px-2 py-1.5 text-sm"
+                    >
+                      <span
+                        className={`shrink-0 w-14 text-xs font-semibold ${
+                          i === 0
+                            ? "text-[var(--color-brand)]"
+                            : "text-[var(--color-text-muted)]"
+                        }`}
+                      >
+                        第{i + 1}回{i === 0 ? "・無料" : ""}
+                      </span>
+                      <span className="truncate flex-1">
+                        {v ? v.title : `(削除済み: ${id})`}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => moveVideo(i, -1)}
+                        disabled={i === 0}
+                        className="px-1.5 disabled:opacity-25"
+                        aria-label="上へ"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveVideo(i, 1)}
+                        disabled={i === form.videoIds.length - 1}
+                        className="px-1.5 disabled:opacity-25"
+                        aria-label="下へ"
+                      >
+                        ↓
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          )}
           <div>
             <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">
               含める動画 ({form.videoIds.length} 件)

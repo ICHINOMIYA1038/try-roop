@@ -29,6 +29,7 @@ type LiveSchedule = {
   duration: number;
   thumbnailUrl: string | null;
   streamUrl: string | null;
+  archiveVideoId: string | null;
   status: Status;
   createdAt: string;
 };
@@ -41,6 +42,7 @@ type FormState = {
   duration: number;
   thumbnailUrl: string;
   streamUrl: string;
+  archiveVideoId: string;
   status: Status;
 };
 
@@ -52,6 +54,7 @@ const emptyForm: FormState = {
   duration: 60,
   thumbnailUrl: "",
   streamUrl: "",
+  archiveVideoId: "",
   status: "scheduled",
 };
 
@@ -87,6 +90,7 @@ export default function LiveSchedulesPage() {
           title: data.title ?? "",
           description: data.description ?? "",
           scheduledAt: isoFromAny(data.scheduledAt),
+          archiveVideoId: data.archiveVideoId ?? null,
           duration: data.duration ?? 60,
           thumbnailUrl: data.thumbnailUrl ?? null,
           streamUrl: data.streamUrl ?? null,
@@ -114,6 +118,7 @@ export default function LiveSchedulesPage() {
       duration: s.duration,
       thumbnailUrl: s.thumbnailUrl ?? "",
       streamUrl: s.streamUrl ?? "",
+      archiveVideoId: s.archiveVideoId ?? "",
       status: s.status,
     });
   const reset = () => setForm({ ...emptyForm, scheduledAtLocal: toLocalInput(new Date()) });
@@ -139,6 +144,7 @@ export default function LiveSchedulesPage() {
         duration: form.duration,
         thumbnailUrl: form.thumbnailUrl.trim() || null,
         streamUrl: form.streamUrl.trim() || null,
+        archiveVideoId: form.archiveVideoId.trim() || null,
         status: form.status,
         createdAt,
       });
@@ -344,6 +350,23 @@ export default function LiveSchedulesPage() {
               onChange={(e) => setForm({ ...form, streamUrl: e.target.value })}
               className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] focus:outline-none focus:border-[var(--color-brand)]"
             />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">
+              見逃し配信の動画ID (任意)
+            </label>
+            <input
+              type="text"
+              value={form.archiveVideoId}
+              onChange={(e) =>
+                setForm({ ...form, archiveVideoId: e.target.value })
+              }
+              placeholder="videos コレクションのドキュメントID"
+              className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] focus:outline-none focus:border-[var(--color-brand)]"
+            />
+            <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+              状態を「終了」にして、ここに動画IDを入れるとアプリの見逃し配信に出ます。
+            </p>
           </div>
           <div className="flex gap-2 pt-2">
             <button

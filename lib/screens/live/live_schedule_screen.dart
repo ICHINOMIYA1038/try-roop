@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../config/legal_urls.dart';
 import '../../models/live_schedule.dart';
@@ -15,11 +16,34 @@ class LiveScheduleScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('LIVE'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'これからの予定'),
+              Tab(text: '見逃し配信'),
+            ],
+          ),
+        ),
+        body: const TabBarView(
+          children: [_UpcomingTab(), _ArchiveTab()],
+        ),
+      ),
+    );
+  }
+}
+
+class _UpcomingTab extends ConsumerWidget {
+  const _UpcomingTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final schedulesAsync = ref.watch(liveSchedulesProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('LIVEの予定')),
-      body: schedulesAsync.when(
+    return schedulesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => ErrorView(error: e),
         data: (all) {
@@ -69,8 +93,62 @@ class LiveScheduleScreen extends ConsumerWidget {
               ],
             ],
           );
-        },
-      ),
+      },
+    );
+  }
+}
+
+/// 見逃し配信。終わった配信のアーカイブを新しい順に並べる。
+class _ArchiveTab extends ConsumerWidget {
+  const _ArchiveTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final archivedAsync = ref.watch(archivedLivesProvider);
+
+    return archivedAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => ErrorView(error: e),
+      data: (archived) {
+        if (archived.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Text(
+                '見逃し配信はまだありません。\nLIVEが終わると、ここから見られるようになります。',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Color(0xFF8C8681), height: 1.6),
+              ),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          itemCount: archived.length,
+          itemBuilder: (context, i) {
+            final s = archived[i];
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: ListTile(
+                leading: const Icon(Icons.play_circle_outline,
+                    color: Color(0xFFFF8A3D), size: 32),
+                title: Text(
+                  s.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  '${s.formattedDateTime}  ${s.duration}分',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                onTap: () => context.push('/video/${s.archiveVideoId}'),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

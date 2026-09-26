@@ -8,6 +8,9 @@ class LiveSchedule {
   final int duration; // minutes
   final String? thumbnailUrl;
   final String? streamUrl;
+
+  /// 配信が終わったあとのアーカイブ動画。見逃し配信で使う。
+  final String? archiveVideoId;
   final LiveStatus status;
   final DateTime createdAt;
 
@@ -19,6 +22,7 @@ class LiveSchedule {
     required this.duration,
     this.thumbnailUrl,
     this.streamUrl,
+    this.archiveVideoId,
     required this.status,
     required this.createdAt,
   });
@@ -32,6 +36,7 @@ class LiveSchedule {
       duration: map['duration'] ?? 60,
       thumbnailUrl: map['thumbnailUrl'],
       streamUrl: map['streamUrl'],
+      archiveVideoId: map['archiveVideoId'],
       status: LiveStatus.values.firstWhere(
         (e) => e.name == map['status'],
         orElse: () => LiveStatus.scheduled,
@@ -48,6 +53,7 @@ class LiveSchedule {
       'duration': duration,
       'thumbnailUrl': thumbnailUrl,
       'streamUrl': streamUrl,
+      'archiveVideoId': archiveVideoId,
       'status': status.name,
       'createdAt': createdAt.toIso8601String(),
     };
@@ -56,6 +62,10 @@ class LiveSchedule {
   bool get isLive => status == LiveStatus.live;
   bool get isScheduled => status == LiveStatus.scheduled;
   bool get isEnded => status == LiveStatus.ended;
+
+  /// 見逃し配信として見られるか。
+  bool get hasArchive =>
+      isEnded && archiveVideoId != null && archiveVideoId!.isNotEmpty;
 
   bool get isUpcoming {
     return status == LiveStatus.scheduled && scheduledAt.isAfter(DateTime.now());

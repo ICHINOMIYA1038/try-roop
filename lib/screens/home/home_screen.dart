@@ -201,6 +201,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ),
                   ),
 
+                // 本日のLIVE。Try Loop の中心なので、カテゴリの絞り込みより前に置く。
+                const TodayLiveBanner(),
+                const SizedBox(height: 20),
+
                 // Category Tabs (Pill/Chip Style)
                 TabBar(
                   controller: _tabController!,
@@ -301,11 +305,6 @@ class _AllVideosTab extends ConsumerWidget {
         return ListView(
           padding: const EdgeInsets.symmetric(vertical: 20),
           children: [
-            // Try Loop は LIVE が中心なので、開いた時点で今日の配信が分かる
-            // ようにする。
-            const TodayLiveBanner(),
-            const SizedBox(height: 24),
-
             // Free Videos Section
             if (!FeatureFlags.isVideoContentEnabled) ...[
               // Coming Soon placeholder for video content

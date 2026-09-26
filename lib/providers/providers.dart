@@ -698,6 +698,12 @@ final todayLiveSchedulesProvider =
   return await ref.watch(firestoreServiceProvider).getTodayLiveSchedules();
 });
 
+/// 見逃し配信の一覧。
+final archivedLivesProvider = FutureProvider<List<LiveSchedule>>((ref) async {
+  if (isDemoMode) return const [];
+  return await ref.watch(firestoreServiceProvider).getArchivedLives();
+});
+
 final currentLiveProvider = FutureProvider<LiveSchedule?>((ref) async {
   if (isDemoMode) {
     return null;

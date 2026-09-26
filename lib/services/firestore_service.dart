@@ -861,6 +861,22 @@ class FirestoreService {
     return upcoming.take(limit).toList();
   }
 
+  /// 見逃し配信。終わった配信のうち、アーカイブが紐づいているもの。
+  Future<List<LiveSchedule>> getArchivedLives({int limit = 20}) async {
+    final snapshot = await _db
+        .collection('liveSchedules')
+        .where('status', isEqualTo: LiveStatus.ended.name)
+        .get();
+
+    final archived = snapshot.docs
+        .map((doc) => LiveSchedule.fromMap(doc.data(), doc.id))
+        .where((l) => l.hasArchive)
+        .toList()
+      ..sort((a, b) => b.scheduledAt.compareTo(a.scheduledAt));
+
+    return archived.take(limit).toList();
+  }
+
   /// 今日ぶんの配信。開始前・配信中の両方を含む。
   Future<List<LiveSchedule>> getTodayLiveSchedules() async {
     final snapshot = await _db.collection('liveSchedules').get();
