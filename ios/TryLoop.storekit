@@ -1,0 +1,44 @@
+{
+  "identifier" : "A1B2C3D4",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_applicationInternalID" : "6759759681",
+    "_developerTeamID" : "",
+    "_lastSynchronizedDate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "22416002",
+      "localizations" : [],
+      "name" : "Try Loop Membership",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "3300",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6816469322",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "すべての講座とLIVEレッスンが受け放題になります。見逃し配信もいつでも視聴できます。",
+              "displayName" : "Try Loop メンバーシップ",
+              "locale" : "ja_JP"
+            }
+          ],
+          "productID" : "tryloop.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Try Loop Monthly",
+          "subscriptionGroupID" : "22416002",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

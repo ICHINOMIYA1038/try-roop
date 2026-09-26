@@ -131,19 +131,24 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Premium',
+                    'Try Loop メンバーシップ',
+                    textAlign: TextAlign.center,
+                    // 端末幅で折り返さない大きさにする。
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 28,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    isPremium ? '現在プレミアム会員です' : 'すべてのコンテンツにアクセス',
+                    isPremium
+                        ? '現在プレミアム会員です'
+                        : '15分のLIVEレッスンに参加できます',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 16,
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 15,
                     ),
                   ),
                 ],
@@ -152,25 +157,26 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             const SizedBox(height: 32),
 
             // Benefits
+            // 未実装の機能は書かない。約束すると審査でも利用者からも問われる。
+            const _BenefitItem(
+              icon: Icons.podcasts,
+              title: 'LIVEレッスンに参加できます',
+              description: '1回15分。講師がその場で教えます',
+            ),
             const _BenefitItem(
               icon: Icons.play_circle_filled,
-              title: '全動画見放題',
-              description: 'プレミアム限定コンテンツを含むすべての動画にアクセス',
+              title: '見逃し配信が見られます',
+              description: 'LIVEに出られなかった回も、あとから視聴できます',
             ),
             const _BenefitItem(
-              icon: Icons.download,
-              title: 'オフライン視聴',
-              description: '動画をダウンロードしてオフラインで視聴（予定）',
+              icon: Icons.school,
+              title: 'すべての講座が受け放題',
+              description: '筋トレ・ボクササイズ・韓国語。第2回以降もすべて',
             ),
             const _BenefitItem(
-              icon: Icons.support_agent,
-              title: '優先サポート',
-              description: 'プレミアム会員専用のサポートチャンネル',
-            ),
-            const _BenefitItem(
-              icon: Icons.new_releases,
-              title: '最新コンテンツ優先',
-              description: '新着コンテンツにいち早くアクセス',
+              icon: Icons.checklist,
+              title: '進捗とTRYの記録',
+              description: 'どこまで進んだか、今月何回挑戦したかが残ります',
             ),
 
             const SizedBox(height: 32),
@@ -180,18 +186,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
               packagesAsync.when(
                 data: (packages) {
                   if (packages.isEmpty) {
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        '現在利用可能なプランはありません。\n後でもう一度お試しください。',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    );
+                    return _PlanOutline(onRetry: () => ref.invalidate(packagesProvider));
                   }
 
                   return Column(
@@ -204,12 +199,12 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                     }).toList(),
                   );
                 },
-                loading: () => const CircularProgressIndicator(),
-                error: (e, _) => const Text(
-                  'プランを読み込めませんでした。通信環境をご確認ください。',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: CircularProgressIndicator(),
                 ),
+                error: (e, _) =>
+                    _PlanOutline(onRetry: () => ref.invalidate(packagesProvider)),
               ),
 
             const SizedBox(height: 16),
@@ -432,6 +427,57 @@ class _PackageCard extends StatelessWidget {
                   ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// プランが取得できなかったときに出す概要。
+///
+/// 金額は伏せない（App Store の登録と同じ）。ただし購入は促さず、
+/// 読み直しの導線だけ置く。ここで購入ボタンを出すと、押しても
+/// 何も起きないことになる。
+class _PlanOutline extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _PlanOutline({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5DCD5)),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Try Loop メンバーシップ',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            '月額 ¥3,300',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFFF8A3D),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'ただいまプランを読み込めませんでした。\n通信環境をご確認のうえ、もう一度お試しください。',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.6),
+          ),
+          const SizedBox(height: 14),
+          OutlinedButton(
+            onPressed: onRetry,
+            child: const Text('もう一度読み込む'),
+          ),
+        ],
       ),
     );
   }

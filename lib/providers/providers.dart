@@ -379,11 +379,18 @@ final canAccessLessonProvider = Provider.family<bool, TextLesson>((ref, lesson) 
   return ref.watch(isPremiumProvider).value ?? false;
 });
 
+/// 購入できるプラン。
+///
+/// RevenueCat に繋がらないと返ってこないため、待ち続けないように区切る。
+/// 区切らないと、通信が不安定なときに課金画面がスピナーのまま止まる。
 final packagesProvider = FutureProvider<List<Package>>((ref) async {
   if (isDemoMode) {
     return [];
   }
-  return await ref.watch(subscriptionServiceProvider).getPackages();
+  return await ref
+      .watch(subscriptionServiceProvider)
+      .getPackages()
+      .timeout(const Duration(seconds: 12));
 });
 
 // ==================== Moderation ====================
