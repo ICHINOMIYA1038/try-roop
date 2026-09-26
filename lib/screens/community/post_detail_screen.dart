@@ -4,6 +4,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/comment.dart';
 import '../../models/like.dart';
 import '../../providers/providers.dart';
+import '../../features/moderation/moderation_models.dart';
+import '../../features/moderation/report_sheet.dart';
 import '../../widgets/comment_tile.dart';
 import '../../widgets/error_view.dart';
 
@@ -42,6 +44,26 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('投稿'),
+        actions: [
+          // 投稿そのものの報告・ブロック。
+          Consumer(
+            builder: (context, ref, _) {
+              final post = ref.watch(postProvider(widget.postId)).value;
+              if (post == null) return const SizedBox.shrink();
+              return IconButton(
+                icon: const Icon(Icons.more_horiz),
+                tooltip: 'この投稿について',
+                onPressed: () => ReportSheet.show(
+                  context,
+                  targetType: ReportTargetType.post,
+                  targetId: post.id,
+                  targetAuthorId: post.authorId,
+                  targetAuthorName: post.authorName,
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: postAsync.when(
         data: (post) {
@@ -220,13 +242,29 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                               ),
                             );
                           }
+                          // ブロックした相手のコメントは出さない。
+                          final blocked =
+                              ref.watch(blockedUserIdsProvider).value ??
+                                  const <String>{};
+                          final visible = comments
+                              .where((c) => !blocked.contains(c.authorId))
+                              .toList();
+
                           return ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: comments.length,
+                            itemCount: visible.length,
                             itemBuilder: (context, index) {
+                              final c = visible[index];
                               return CommentTile(
-                                comment: comments[index],
+                                comment: c,
+                                onMore: () => ReportSheet.show(
+                                  context,
+                                  targetType: ReportTargetType.comment,
+                                  targetId: c.id,
+                                  targetAuthorId: c.authorId,
+                                  targetAuthorName: c.authorName,
+                                ),
                               );
                             },
                           );

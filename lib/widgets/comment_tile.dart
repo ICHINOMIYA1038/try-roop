@@ -8,7 +8,11 @@ class CommentTile extends StatelessWidget {
   final VoidCallback? onLike;
   final bool isLiked;
 
+  /// 「…」を押したとき。報告とブロックの入口。
+  final VoidCallback? onMore;
+
   const CommentTile({
+    this.onMore,
     super.key,
     required this.comment,
     this.onReply,
@@ -139,6 +143,14 @@ class CommentTile extends StatelessWidget {
               ],
             ),
           ),
+          if (onMore != null)
+            IconButton(
+              icon: const Icon(Icons.more_horiz, size: 18),
+              color: Colors.grey[500],
+              visualDensity: VisualDensity.compact,
+              tooltip: 'このコメントについて',
+              onPressed: onMore,
+            ),
         ],
       ),
     );

@@ -8,6 +8,7 @@ import 'providers/providers.dart';
 import 'services/analytics_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'features/moderation/blocked_users_screen.dart';
 import 'screens/live/live_schedule_screen.dart';
 import 'screens/video/video_player_screen.dart';
 import 'screens/profile/profile_screen.dart';
@@ -44,6 +45,7 @@ const _authRequiredRoutes = [
   '/dashboard',
   '/members',
   '/events',
+  '/blocked',
   // 管理画面。書き込みは Firestore のルールでも弾かれるが、
   // 未ログインのまま画面に入れてしまうのは避ける。
   '/admin',
@@ -188,6 +190,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Subscription (modal)
+      GoRoute(
+        path: '/blocked',
+        builder: (context, state) => const BlockedUsersScreen(),
+      ),
+
       GoRoute(
         path: '/live',
         builder: (context, state) => const LiveScheduleScreen(),

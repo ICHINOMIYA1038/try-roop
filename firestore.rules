@@ -166,6 +166,21 @@ service cloud.firestore {
         || (isSignedIn() && onlyChanges(['currentParticipants']));
     }
 
+    // 通報。出したら本人にも読めない（取り下げや改変をさせない）。
+    // 内容の確認と対応は運営が管理画面で行う。
+    match /reports/{reportId} {
+      allow create: if isOwner(request.resource.data.reporterId);
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ブロック。本人のものだけ。
+    match /blocks/{blockId} {
+      allow read: if missing() || isOwner(resource.data.userId) || isAdmin();
+      allow create: if isOwner(request.resource.data.userId);
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+      allow update: if false;
+    }
+
     // TRY の記録。本人のものだけ。
     match /tryRecords/{recordId} {
       allow read: if missing() || isOwner(resource.data.userId) || isAdmin();

@@ -431,6 +431,12 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   const _MenuDivider(),
                   _MenuItem(
+                    icon: Icons.block,
+                    title: 'ブロックしたユーザー',
+                    onTap: () => context.push('/blocked'),
+                  ),
+                  const _MenuDivider(),
+                  _MenuItem(
                     icon: Icons.help_outline,
                     title: 'ヘルプ・お問い合わせ',
                     onTap: () =>

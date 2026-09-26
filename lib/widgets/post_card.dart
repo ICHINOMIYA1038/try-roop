@@ -11,9 +11,13 @@ class PostCard extends ConsumerWidget {
   final VoidCallback? onLike;
   final VoidCallback? onComment;
 
+  /// 「…」を押したとき。報告とブロックの入口。
+  final VoidCallback? onMore;
+
   const PostCard({
     super.key,
     required this.post,
+    this.onMore,
     this.onTap,
     this.onLike,
     this.onComment,
@@ -88,6 +92,14 @@ class PostCard extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  if (onMore != null)
+                    IconButton(
+                      icon: const Icon(Icons.more_horiz, size: 20),
+                      color: Colors.grey[500],
+                      visualDensity: VisualDensity.compact,
+                      tooltip: 'この投稿について',
+                      onPressed: onMore,
+                    ),
                 ],
               ),
               const SizedBox(height: 12),

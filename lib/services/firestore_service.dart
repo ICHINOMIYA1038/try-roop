@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../features/moderation/moderation_models.dart';
 import '../features/try_loop/try_record.dart';
 import '../models/app_user.dart';
 import '../models/video.dart';
@@ -168,6 +169,69 @@ class FirestoreService {
             .toList());
   }
 
+  // ==================== Moderation ====================
+
+  /// 不適切な内容を通報する。
+  ///
+  /// 同じ人が同じ対象を何度送っても1件にまとまる。
+  Future<void> report({
+    required String reporterId,
+    required ReportTargetType targetType,
+    required String targetId,
+    String? targetAuthorId,
+    required ReportReason reason,
+    String? note,
+  }) async {
+    final id = Report.buildId(
+      reporterId: reporterId,
+      targetType: targetType,
+      targetId: targetId,
+    );
+
+    await _db.collection('reports').doc(id).set(
+          Report(
+            id: id,
+            reporterId: reporterId,
+            targetType: targetType,
+            targetId: targetId,
+            targetAuthorId: targetAuthorId,
+            reason: reason,
+            note: note,
+            createdAt: DateTime.now(),
+          ).toMap(),
+        );
+  }
+
+  Future<void> blockUser(String userId, String blockedUserId) async {
+    final id = BlockedUser.buildId(userId, blockedUserId);
+    await _db.collection('blocks').doc(id).set(
+          BlockedUser(
+            userId: userId,
+            blockedUserId: blockedUserId,
+            createdAt: DateTime.now(),
+          ).toMap(),
+        );
+  }
+
+  Future<void> unblockUser(String userId, String blockedUserId) async {
+    await _db
+        .collection('blocks')
+        .doc(BlockedUser.buildId(userId, blockedUserId))
+        .delete();
+  }
+
+  /// ブロックした相手の一覧。投稿やコメントを隠すために使う。
+  Stream<Set<String>> blockedUserIdsStream(String userId) {
+    return _db
+        .collection('blocks')
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => (doc.data()['blockedUserId'] as String?) ?? '')
+            .where((id) => id.isNotEmpty)
+            .toSet());
+  }
+
   // ==================== TRY ====================
 
   /// 挑戦を1回ぶん記録する。
@@ -233,6 +297,7 @@ class FirestoreService {
     await _deleteWhere('eventParticipations', 'userId', uid);
     await _deleteWhere('notifications', 'userId', uid);
     await _deleteWhere('tryRecords', 'userId', uid);
+    await _deleteWhere('blocks', 'userId', uid);
     await _deleteWhere('comments', 'authorId', uid);
     await _deleteWhere('posts', 'authorId', uid);
   }

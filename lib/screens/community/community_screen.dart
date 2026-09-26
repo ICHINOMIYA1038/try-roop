@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/like.dart';
 import '../../providers/providers.dart';
+import '../../features/moderation/moderation_models.dart';
+import '../../features/moderation/report_sheet.dart';
 import '../../widgets/action_feedback.dart';
 import '../../widgets/post_card.dart';
 import '../../widgets/error_view.dart';
@@ -26,6 +28,11 @@ class CommunityScreen extends ConsumerWidget {
       ),
       body: postsAsync.when(
         data: (posts) {
+          // ブロックした相手の投稿は出さない。
+          final blocked =
+              ref.watch(blockedUserIdsProvider).value ?? const <String>{};
+          final visible =
+              posts.where((p) => !blocked.contains(p.authorId)).toList();
           if (posts.isEmpty) {
             return const Center(
               child: Column(
@@ -45,9 +52,9 @@ class CommunityScreen extends ConsumerWidget {
             },
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: posts.length,
+              itemCount: visible.length,
               itemBuilder: (context, index) {
-                final post = posts[index];
+                final post = visible[index];
                 return PostCard(
                   post: post,
                   onTap: () => context.push('/post/${post.id}'),
@@ -68,6 +75,13 @@ class CommunityScreen extends ConsumerWidget {
                     );
                   },
                   onComment: () => context.push('/post/${post.id}'),
+                  onMore: () => ReportSheet.show(
+                    context,
+                    targetType: ReportTargetType.post,
+                    targetId: post.id,
+                    targetAuthorId: post.authorId,
+                    targetAuthorName: post.authorName,
+                  ),
                 );
               },
             ),

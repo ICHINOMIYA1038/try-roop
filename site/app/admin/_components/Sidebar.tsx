@@ -30,6 +30,7 @@ const nav: { section: string; items: NavItem[] }[] = [
   {
     section: "コミュニティ",
     items: [
+      { href: "/admin/reports", label: "通報", ready: true },
       { href: "/admin/posts", label: "投稿モデレーション", ready: true },
       { href: "/admin/users", label: "ユーザー管理", ready: true },
     ],

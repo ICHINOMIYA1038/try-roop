@@ -376,6 +376,25 @@ final packagesProvider = FutureProvider<List<Package>>((ref) async {
   return await ref.watch(subscriptionServiceProvider).getPackages();
 });
 
+// ==================== Moderation ====================
+
+/// 特定の利用者。ブロック一覧の表示名に使う。
+final memberProvider =
+    FutureProvider.family<AppUser?, String>((ref, uid) async {
+  if (isDemoMode) return null;
+  return await ref.watch(firestoreServiceProvider).getUser(uid);
+});
+
+/// ブロックした相手。投稿・コメントを隠すのに使う。
+final blockedUserIdsProvider = StreamProvider<Set<String>>((ref) {
+  if (isDemoMode) return Stream.value(const {});
+
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Stream.value(const {});
+
+  return ref.watch(firestoreServiceProvider).blockedUserIdsStream(user.uid);
+});
+
 // ==================== TRY ====================
 
 final tryRecordsProvider = StreamProvider<List<TryRecord>>((ref) {
@@ -592,6 +611,14 @@ final userCourseProgressListProvider = FutureProvider<List<CourseProgress>>((ref
 
 // ==================== Posts ====================
 
+/// 投稿一覧。ブロックした相手のものは出さない。
+final visiblePostsProvider = Provider<List<Post>>((ref) {
+  final posts = ref.watch(postsProvider).value ?? const [];
+  final blocked = ref.watch(blockedUserIdsProvider).value ?? const <String>{};
+  if (blocked.isEmpty) return posts;
+  return posts.where((p) => !blocked.contains(p.authorId)).toList();
+});
+
 final postsProvider = StreamProvider<List<Post>>((ref) {
   if (isDemoMode) {
     return Stream.value(demoPosts);
@@ -608,6 +635,16 @@ final postProvider = FutureProvider.family<Post?, String>((ref, postId) async {
 });
 
 // ==================== Comments ====================
+
+/// コメント一覧からブロックした相手を除く。
+final visibleCommentsProvider = Provider.family<List<Comment>,
+    ({CommentTargetType type, String targetId})>((ref, params) {
+  final comments = ref.watch(commentsProvider(params)).value ?? const [];
+  final blocked = ref.watch(blockedUserIdsProvider).value ?? const <String>{};
+  if (blocked.isEmpty) return comments;
+  return comments.where((c) => !blocked.contains(c.authorId)).toList();
+});
+
 
 final commentsProvider =
     StreamProvider.family<List<Comment>, ({CommentTargetType type, String targetId})>(
