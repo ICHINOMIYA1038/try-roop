@@ -9,6 +9,7 @@ import '../../config/legal_urls.dart';
 import '../../providers/providers.dart';
 import '../../services/review_prompt_service.dart';
 import '../../services/share_service.dart';
+import '../../services/live_reminder_service.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -407,6 +408,8 @@ class ProfileScreen extends ConsumerWidget {
                     onTap: () => context.push('/subscription'),
                   ),
                   const _MenuDivider(),
+                  const _LiveReminderToggle(),
+                  const _MenuDivider(),
                   _MenuItem(
                     icon: Icons.campaign_outlined,
                     title: 'お知らせ',
@@ -612,6 +615,74 @@ class _TryStat extends StatelessWidget {
           style: const TextStyle(fontSize: 11, color: Color(0xFF8C8681)),
         ),
       ],
+    );
+  }
+}
+
+/// LIVE のお知らせを受け取るかどうか。
+///
+/// LIVE は1回15分で、始まってから気づいても間に合わない。
+class _LiveReminderToggle extends ConsumerStatefulWidget {
+  const _LiveReminderToggle();
+
+  @override
+  ConsumerState<_LiveReminderToggle> createState() =>
+      _LiveReminderToggleState();
+}
+
+class _LiveReminderToggleState extends ConsumerState<_LiveReminderToggle> {
+  bool? _enabled;
+
+  @override
+  void initState() {
+    super.initState();
+    LiveReminderService.isEnabled().then((v) {
+      if (mounted) setState(() => _enabled = v);
+    });
+  }
+
+  Future<void> _toggle(bool value) async {
+    if (!value) {
+      await LiveReminderService.disable();
+      if (mounted) setState(() => _enabled = false);
+      return;
+    }
+
+    final ok = await LiveReminderService.enable();
+    if (!mounted) return;
+
+    if (!ok) {
+      setState(() => _enabled = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('通知が許可されていません。設定アプリから許可してください。'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _enabled = true);
+    // いまの予定をもとに通知を入れる。
+    final schedules = ref.read(liveSchedulesProvider).value ?? const [];
+    await LiveReminderService.sync(schedules);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      leading: const Icon(Icons.notifications_active_outlined,
+          color: Color(0xFF8C8681)),
+      title: const Text('LIVEのお知らせ', style: TextStyle(fontSize: 15)),
+      subtitle: const Text(
+        '始まる15分前に通知します',
+        style: TextStyle(fontSize: 12),
+      ),
+      trailing: Switch(
+        value: _enabled ?? false,
+        onChanged: _enabled == null ? null : _toggle,
+        activeThumbColor: const Color(0xFFFF8A3D),
+      ),
     );
   }
 }

@@ -28,6 +28,7 @@ import '../models/event_participation.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../services/analytics_service.dart';
+import '../services/live_reminder_service.dart';
 import '../services/subscription_service.dart';
 
 // ==================== Demo Data ====================
@@ -736,7 +737,11 @@ final liveSchedulesProvider = StreamProvider<List<LiveSchedule>>((ref) {
   if (isDemoMode) {
     return Stream.value(_demoLiveSchedules);
   }
-  return ref.watch(firestoreServiceProvider).liveSchedulesStream();
+  return ref.watch(firestoreServiceProvider).liveSchedulesStream().map((list) {
+    // 予定は管理画面で変わるので、読めたタイミングで通知を入れ直す。
+    LiveReminderService.sync(list);
+    return list;
+  });
 });
 
 final upcomingLiveSchedulesProvider = FutureProvider<List<LiveSchedule>>((ref) async {
