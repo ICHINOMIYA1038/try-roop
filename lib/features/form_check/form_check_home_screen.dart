@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/providers.dart';
+import '../../services/share_service.dart';
 import '../../widgets/error_view.dart';
 import 'form_check_screen.dart';
 import 'form_session.dart';
@@ -139,6 +140,12 @@ class _SessionTile extends StatelessWidget {
                     fontSize: 12,
                     color: Color(0xFF8C8681),
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.ios_share, size: 18),
+                  tooltip: '結果を共有',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => ShareService.shareFormResult(session),
                 ),
               ],
             ),

@@ -62,9 +62,14 @@ class FormCheckController extends ChangeNotifier {
       return;
     }
 
-    _updateBest(left, right);
     _current = _representative(left, right);
     _counter.add(_toCounterValue(_current));
+
+    // いちばん良かった値は、動作の最中だけ拾う。構えている間や測り終えた
+    // あとの姿勢まで含めると、しゃがんで待っているだけで記録が伸びてしまう。
+    if (_counter.isDown) {
+      _updateBest(left, right);
+    }
 
     notifyListeners();
   }

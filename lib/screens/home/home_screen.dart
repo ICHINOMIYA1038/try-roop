@@ -300,6 +300,10 @@ class _AllVideosTab extends ConsumerWidget {
         return ListView(
           padding: const EdgeInsets.symmetric(vertical: 20),
           children: [
+            // フォーム測定。アプリを開く理由になる機能なので上に置く。
+            const _FormCheckBanner(),
+            const SizedBox(height: 24),
+
             // Free Videos Section
             if (!FeatureFlags.isVideoContentEnabled) ...[
               // Coming Soon placeholder for video content
@@ -945,6 +949,60 @@ class _VideoComingSoonSection extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// ホームからフォーム測定に入る導線。
+class _FormCheckBanner extends StatelessWidget {
+  const _FormCheckBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: InkWell(
+        onTap: () => context.push('/form-check'),
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFF8A3D), Color(0xFFFF6B35)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.straighten, color: Colors.white, size: 36),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'フォームを測る',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'カメラに映すだけ。回数と到達点を記録します',
+                      style: TextStyle(color: Colors.white, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.white),
+            ],
+          ),
         ),
       ),
     );

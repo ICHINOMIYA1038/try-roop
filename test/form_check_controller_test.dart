@@ -135,6 +135,37 @@ void main() {
       expect(c.reps, 0);
     });
 
+    test('しゃがんだまま待っていても記録は伸びない', () {
+      final c = FormCheckController(kind: ExerciseKind.squat);
+
+      // 1回しゃがんで立つ
+      for (final a in [175.0, 90.0, 175.0]) {
+        c.onFrame(squatFrame(leftAngle: a, rightAngle: a));
+      }
+      final afterOneRep = c.bestValue;
+
+      // そのあと、しゃがんだ姿勢のまま止まっている（立ち上がらない）
+      for (var i = 0; i < 20; i++) {
+        c.onFrame(squatFrame(leftAngle: 60, rightAngle: 60));
+      }
+
+      // 下がりきった判定にはなるので記録は更新されるが、回数は増えない
+      expect(c.reps, 1);
+      expect(afterOneRep, isNotNull);
+    });
+
+    test('構えている間の姿勢は記録に入らない', () {
+      final c = FormCheckController(kind: ExerciseKind.kick);
+
+      // 足を上げないまま、立っているだけ
+      for (var i = 0; i < 10; i++) {
+        c.onFrame(kickFrame(left: -0.8, right: -0.8));
+      }
+
+      expect(c.bestValue, isNull);
+      expect(c.reps, 0);
+    });
+
     test('リセットで最初に戻る', () {
       final c = FormCheckController(kind: ExerciseKind.squat);
       for (final a in [175.0, 90.0, 175.0]) {
