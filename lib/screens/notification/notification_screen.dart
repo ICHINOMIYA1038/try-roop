@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../models/app_notification.dart';
 import '../../providers/providers.dart';
 import '../../widgets/notification_tile.dart';
+import '../../widgets/error_view.dart';
 
 class NotificationScreen extends ConsumerWidget {
   const NotificationScreen({super.key});
@@ -61,7 +62,7 @@ class NotificationScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
-          child: Text('エラーが発生しました: $error'),
+          child: ErrorView(error: error),
         ),
       ),
     );

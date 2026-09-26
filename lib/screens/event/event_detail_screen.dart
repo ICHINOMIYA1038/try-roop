@@ -6,6 +6,7 @@ import '../../main.dart' show isDemoMode;
 import '../../models/event.dart';
 import '../../models/event_participation.dart';
 import '../../providers/providers.dart';
+import '../../widgets/error_view.dart';
 
 class EventDetailScreen extends ConsumerWidget {
   final String eventId;
@@ -26,7 +27,7 @@ class EventDetailScreen extends ConsumerWidget {
       ),
       error: (error, stack) => Scaffold(
         appBar: AppBar(),
-        body: Center(child: Text('エラーが発生しました: $error')),
+        body: ErrorView(error: error),
       ),
       data: (event) {
         if (event == null) {
@@ -707,7 +708,7 @@ class EventDetailScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('エラーが発生しました: $e'),
+            content: Text(_registrationErrorMessage(e)),
             backgroundColor: Colors.red,
           ),
         );
@@ -764,7 +765,7 @@ class EventDetailScreen extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('エラーが発生しました: $e'),
+              content: Text(_registrationErrorMessage(e)),
               backgroundColor: Colors.red,
             ),
           );
@@ -772,4 +773,17 @@ class EventDetailScreen extends ConsumerWidget {
       }
     }
   }
+}
+
+/// 申込まわりの失敗を、利用者に伝わる言い方に変える。
+/// これまでは Exception の文字列がそのまま画面に出ていた。
+String _registrationErrorMessage(Object error) {
+  final text = error.toString();
+  if (text.contains('Already registered')) {
+    return 'このイベントにはすでに申し込み済みです';
+  }
+  if (text.contains('Event not found')) {
+    return 'イベントが見つかりませんでした';
+  }
+  return '処理できませんでした。時間をおいてお試しください';
 }

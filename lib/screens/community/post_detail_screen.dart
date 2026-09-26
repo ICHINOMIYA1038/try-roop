@@ -5,6 +5,7 @@ import '../../models/comment.dart';
 import '../../models/like.dart';
 import '../../providers/providers.dart';
 import '../../widgets/comment_tile.dart';
+import '../../widgets/error_view.dart';
 
 class PostDetailScreen extends ConsumerStatefulWidget {
   final String postId;
@@ -144,16 +145,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                             Row(
                               children: [
                                 InkWell(
-                                  onTap: () {
-                                    final user = ref.read(currentUserProvider);
-                                    if (user != null) {
-                                      ref.read(firestoreServiceProvider).toggleLike(
-                                        user.uid,
-                                        LikeTargetType.post,
-                                        post.id,
-                                      );
-                                    }
-                                  },
+                                  onTap: () => _toggleLike(post.id),
                                   borderRadius: BorderRadius.circular(20),
                                   child: Padding(
                                     padding: const EdgeInsets.all(8),
@@ -245,7 +237,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                         ),
                         error: (error, stack) => Padding(
                           padding: const EdgeInsets.all(16),
-                          child: Text('エラー: $error'),
+                          child: ErrorView(error: error),
                         ),
                       ),
                     ],
@@ -312,7 +304,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('エラー: $error')),
+        error: (error, stack) => ErrorView(error: error),
       ),
     );
   }
@@ -341,12 +333,42 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       );
 
       await ref.read(firestoreServiceProvider).createComment(comment);
+      if (!mounted) return;
       _commentController.clear();
       ref.invalidate(commentsProvider(
         (type: CommentTargetType.post, targetId: widget.postId),
       ));
+    } catch (e) {
+      // 失敗を握りつぶすと、入力欄が残ったまま何も起きないように見える。
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('コメントを送信できませんでした')),
+      );
     } finally {
-      setState(() => _isSubmitting = false);
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  Future<void> _toggleLike(String postId) async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('いいねにはログインが必要です')),
+      );
+      return;
+    }
+
+    try {
+      await ref.read(firestoreServiceProvider).toggleLike(
+            user.uid,
+            LikeTargetType.post,
+            postId,
+          );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('いいねを更新できませんでした')),
+      );
     }
   }
 

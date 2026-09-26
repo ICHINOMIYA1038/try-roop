@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/providers.dart';
+import '../../widgets/error_view.dart';
 
 class MemberProfileScreen extends ConsumerWidget {
   final String memberId;
@@ -118,7 +119,7 @@ class MemberProfileScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('エラー: $error')),
+        error: (error, stack) => ErrorView(error: error),
       ),
     );
   }

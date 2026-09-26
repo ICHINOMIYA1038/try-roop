@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../models/text_lesson.dart';
 import '../../models/video.dart' show AccessLevel;
 import '../../providers/providers.dart';
+import '../../widgets/error_view.dart';
 
 class AdminTextLessonListScreen extends ConsumerWidget {
   const AdminTextLessonListScreen({super.key});
@@ -34,7 +35,7 @@ class AdminTextLessonListScreen extends ConsumerWidget {
       ),
       body: lessonsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('エラー: $error')),
+        error: (error, stack) => ErrorView(error: error),
         data: (lessons) {
           if (lessons.isEmpty) {
             return Center(

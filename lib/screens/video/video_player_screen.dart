@@ -15,6 +15,7 @@ import '../../services/firestore_service.dart';
 import '../../services/share_service.dart';
 import '../../widgets/chapter_list.dart';
 import '../../widgets/premium_lock.dart';
+import '../../widgets/error_view.dart';
 
 class VideoPlayerScreen extends ConsumerStatefulWidget {
   final String videoId;
@@ -476,7 +477,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                               ),
                             ),
                             error: (e, _) => Center(
-                              child: Text('Error: $e'),
+                              child: ErrorView(error: e),
                             ),
                           ),
                         ],
@@ -493,7 +494,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
         body: Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => Scaffold(
-        body: Center(child: Text('Error: $e')),
+        body: ErrorView(error: e),
       ),
     );
   }

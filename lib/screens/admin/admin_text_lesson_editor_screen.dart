@@ -116,7 +116,7 @@ class _AdminTextLessonEditorScreenState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エラー: $e')),
+          const SnackBar(content: Text('保存できませんでした')),
         );
       }
     } finally {

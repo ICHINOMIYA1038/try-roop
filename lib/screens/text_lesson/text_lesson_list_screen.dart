@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/text_lesson.dart';
 import '../../providers/providers.dart';
+import '../../widgets/error_view.dart';
 
 class TextLessonListScreen extends ConsumerStatefulWidget {
   const TextLessonListScreen({super.key});
@@ -28,7 +29,7 @@ class _TextLessonListScreenState extends ConsumerState<TextLessonListScreen> {
       ),
       error: (error, stack) => Scaffold(
         appBar: AppBar(title: const Text('テキスト学習')),
-        body: Center(child: Text('エラーが発生しました: $error')),
+        body: ErrorView(error: error),
       ),
       data: (lessons) {
         // Apply category filter

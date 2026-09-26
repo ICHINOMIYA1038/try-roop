@@ -10,6 +10,7 @@ import '../../models/course.dart';
 import '../../models/post.dart';
 import '../../providers/providers.dart';
 import '../../services/analytics_service.dart';
+import '../../widgets/error_view.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -124,7 +125,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('エラー: $error')),
+        error: (error, stack) => ErrorView(error: error),
       ),
     );
   }

@@ -6,6 +6,7 @@ import '../../models/event.dart';
 import '../../providers/providers.dart';
 import '../../widgets/event_card.dart';
 import '../../widgets/month_calendar.dart';
+import '../../widgets/error_view.dart';
 
 class EventCalendarScreen extends ConsumerWidget {
   const EventCalendarScreen({super.key});
@@ -27,7 +28,7 @@ class EventCalendarScreen extends ConsumerWidget {
       ),
       body: eventsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('エラーが発生しました: $error')),
+        error: (error, stack) => ErrorView(error: error),
         data: (events) {
           // Get event dates for calendar dots
           final eventDates = events

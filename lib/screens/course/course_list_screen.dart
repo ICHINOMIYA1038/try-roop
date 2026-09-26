@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../models/course.dart';
 import '../../providers/providers.dart';
 import '../../widgets/course_card.dart';
+import '../../widgets/error_view.dart';
 
 class CourseListScreen extends ConsumerStatefulWidget {
   const CourseListScreen({super.key});
@@ -144,7 +145,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
               },
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(
-                child: Text('エラーが発生しました: $error'),
+                child: ErrorView(error: error),
               ),
             ),
           ),

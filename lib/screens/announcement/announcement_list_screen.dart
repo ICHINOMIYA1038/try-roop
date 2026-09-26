@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/providers.dart';
+import '../../widgets/error_view.dart';
 
 class AnnouncementListScreen extends ConsumerWidget {
   const AnnouncementListScreen({super.key});
@@ -90,7 +91,7 @@ class AnnouncementListScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('エラー: $error')),
+        error: (error, stack) => ErrorView(error: error),
       ),
     );
   }

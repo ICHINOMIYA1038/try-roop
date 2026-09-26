@@ -5,6 +5,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/course.dart';
 import '../../models/bookmark.dart';
 import '../../providers/providers.dart';
+import '../../widgets/action_feedback.dart';
+import '../../widgets/error_view.dart';
 
 class CourseDetailScreen extends ConsumerWidget {
   final String courseId;
@@ -52,15 +54,21 @@ class CourseDetailScreen extends ConsumerWidget {
                     ),
                     onPressed: () {
                       final user = ref.read(currentUserProvider);
-                      if (user != null) {
-                        ref
+                      if (user == null) {
+                        requireSignIn(context, 'ブックマークにはログインが必要です');
+                        return;
+                      }
+                      runWithFeedback(
+                        context,
+                        () => ref
                             .read(firestoreServiceProvider)
                             .toggleBookmark(
                               user.uid,
                               BookmarkTargetType.course,
                               courseId,
-                            );
-                      }
+                            ),
+                        onFailure: 'ブックマークを更新できませんでした',
+                      );
                     },
                   ),
                 ],
@@ -325,7 +333,7 @@ class CourseDetailScreen extends ConsumerWidget {
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, stack) => Scaffold(
         appBar: AppBar(),
-        body: Center(child: Text('エラー: $error')),
+        body: ErrorView(error: error),
       ),
     );
   }

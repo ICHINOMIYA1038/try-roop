@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/like.dart';
 import '../../providers/providers.dart';
+import '../../widgets/action_feedback.dart';
 import '../../widgets/post_card.dart';
+import '../../widgets/error_view.dart';
 
 class CommunityScreen extends ConsumerWidget {
   const CommunityScreen({super.key});
@@ -51,13 +53,19 @@ class CommunityScreen extends ConsumerWidget {
                   onTap: () => context.push('/post/${post.id}'),
                   onLike: () {
                     final user = ref.read(currentUserProvider);
-                    if (user != null) {
-                      ref.read(firestoreServiceProvider).toggleLike(
-                        user.uid,
-                        LikeTargetType.post,
-                        post.id,
-                      );
+                    if (user == null) {
+                      requireSignIn(context, 'いいねにはログインが必要です');
+                      return;
                     }
+                    runWithFeedback(
+                      context,
+                      () => ref.read(firestoreServiceProvider).toggleLike(
+                            user.uid,
+                            LikeTargetType.post,
+                            post.id,
+                          ),
+                      onFailure: 'いいねを更新できませんでした',
+                    );
                   },
                   onComment: () => context.push('/post/${post.id}'),
                 );
@@ -67,7 +75,7 @@ class CommunityScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
-          child: Text('エラーが発生しました: $error'),
+          child: ErrorView(error: error),
         ),
       ),
       floatingActionButton: FloatingActionButton(

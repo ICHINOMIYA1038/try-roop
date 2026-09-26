@@ -10,6 +10,7 @@ import '../../models/category.dart';
 import '../../models/text_lesson.dart';
 import '../../models/event.dart';
 import '../../widgets/video_card.dart';
+import '../../widgets/error_view.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -271,7 +272,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         body: Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => Scaffold(
-        body: Center(child: Text('Error: $e')),
+        body: ErrorView(error: e),
       ),
     );
   }
@@ -467,7 +468,7 @@ class _AllVideosTab extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
+      error: (e, _) => ErrorView(error: e),
     );
   }
 
@@ -853,7 +854,7 @@ class _CategoryVideosTab extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
+      error: (e, _) => ErrorView(error: e),
     );
   }
 }

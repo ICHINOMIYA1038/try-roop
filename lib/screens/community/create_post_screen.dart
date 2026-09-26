@@ -157,7 +157,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エラー: $e')),
+          const SnackBar(content: Text('投稿できませんでした')),
         );
       }
     } finally {

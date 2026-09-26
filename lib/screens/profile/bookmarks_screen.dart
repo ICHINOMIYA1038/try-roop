@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../config/feature_flags.dart';
 import '../../models/bookmark.dart';
 import '../../providers/providers.dart';
+import '../../widgets/error_view.dart';
 
 class BookmarksScreen extends ConsumerStatefulWidget {
   const BookmarksScreen({super.key});
@@ -99,7 +100,7 @@ class _BookmarkList extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('エラー: $error')),
+      error: (error, stack) => ErrorView(error: error),
     );
   }
 

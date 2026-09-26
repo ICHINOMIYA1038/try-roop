@@ -10,6 +10,7 @@ import '../../services/analytics_service.dart';
 import '../../services/review_prompt_service.dart';
 import '../../services/share_service.dart';
 import '../../widgets/premium_lock.dart';
+import '../../widgets/error_view.dart';
 
 class TextLessonDetailScreen extends ConsumerStatefulWidget {
   final String lessonId;
@@ -212,7 +213,7 @@ class _TextLessonDetailScreenState
       ),
       error: (error, stack) => Scaffold(
         appBar: AppBar(),
-        body: Center(child: Text('エラーが発生しました: $error')),
+        body: ErrorView(error: error),
       ),
       data: (lesson) {
         if (lesson == null) {
