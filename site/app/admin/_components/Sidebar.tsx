@@ -16,6 +16,10 @@ const nav: { section: string; items: NavItem[] }[] = [
     items: [{ href: "/admin", label: "概要", ready: true }],
   },
   {
+    section: "運営",
+    items: [{ href: "/admin/stats", label: "数字", ready: true }],
+  },
+  {
     section: "コンテンツ",
     items: [
       { href: "/admin/announcements", label: "お知らせ", ready: true },

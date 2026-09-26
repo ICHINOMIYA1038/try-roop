@@ -330,9 +330,19 @@ final isPremiumProvider = StreamProvider<bool>((ref) {
   if (appUser == null) return Stream.value(false);
   if (appUser.isPremium) return Stream.value(true);
 
+  final firestore = ref.watch(firestoreServiceProvider);
+
   return ref
       .watch(subscriptionServiceProvider)
       .premiumStream()
+      .map((active) {
+        // 運営が有料会員数を数えられるよう、users に写しておく。
+        // この値は権限判定には読み戻さない（解約が反映されなくなるため）。
+        firestore.mirrorSubscription(appUser.uid, active: active).catchError(
+              (Object e) => debugPrint('mirrorSubscription failed: $e'),
+            );
+        return active;
+      })
       .handleError((Object e) {
     debugPrint('isPremiumProvider: $e');
   });

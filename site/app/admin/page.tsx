@@ -4,6 +4,18 @@ import Link from "next/link";
 
 const sections = [
   {
+    href: "/admin/stats",
+    label: "数字",
+    description: "登録者数・有料会員・視聴数・人気の講座",
+    ready: true,
+  },
+  {
+    href: "/admin/reports",
+    label: "通報",
+    description: "利用者から届いた報告の確認と対応",
+    ready: true,
+  },
+  {
     href: "/admin/announcements",
     label: "お知らせ",
     description: "ユーザーへの全体告知の作成・編集・公開管理",

@@ -169,6 +169,27 @@ class FirestoreService {
             .toList());
   }
 
+  // ==================== Subscription mirror ====================
+
+  /// RevenueCat の課金状態を、集計用に users に写す。
+  ///
+  /// **権限の判定にはこの値を使わない。** 使うと、解約した人が
+  /// 次に開くまで（あるいは永久に）プレミアムのままになる。
+  /// 権限は必ず RevenueCat を見る。ここは運営が人数を数えるためだけ。
+  Future<void> mirrorSubscription(String uid, {required bool active}) async {
+    final ref = _db.collection('users').doc(uid);
+    final snapshot = await ref.get();
+    if (!snapshot.exists) return;
+
+    // 変わっていなければ書かない。起動のたびに書き込まないため。
+    if (snapshot.data()?['hasActiveSubscription'] == active) return;
+
+    await ref.update({
+      'hasActiveSubscription': active,
+      'subscriptionCheckedAt': DateTime.now().toIso8601String(),
+    });
+  }
+
   // ==================== Moderation ====================
 
   /// 不適切な内容を通報する。
