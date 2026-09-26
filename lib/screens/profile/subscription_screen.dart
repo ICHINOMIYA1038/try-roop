@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
+import '../../config/legal_urls.dart';
 import '../../providers/providers.dart';
+import '../../services/analytics_service.dart';
 
 class SubscriptionScreen extends ConsumerStatefulWidget {
   const SubscriptionScreen({super.key});
@@ -14,12 +16,23 @@ class SubscriptionScreen extends ConsumerStatefulWidget {
 class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.paywallViewed('subscription_screen');
+  }
+
   Future<void> _purchase(Package package) async {
     setState(() => _isLoading = true);
+    AnalyticsService.purchaseStarted(package.storeProduct.identifier);
 
     try {
       final subscriptionService = ref.read(subscriptionServiceProvider);
       final success = await subscriptionService.purchasePackage(package);
+
+      if (success) {
+        AnalyticsService.purchaseCompleted(package.storeProduct.identifier);
+      }
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -33,7 +46,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          const SnackBar(content: Text('購入を完了できませんでした')),
         );
       }
     } finally {
@@ -65,7 +78,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          const SnackBar(content: Text('購入を復元できませんでした')),
         );
       }
     } finally {
@@ -192,7 +205,11 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   );
                 },
                 loading: () => const CircularProgressIndicator(),
-                error: (e, _) => Text('Error: $e'),
+                error: (e, _) => const Text(
+                  'プランを読み込めませんでした。通信環境をご確認ください。',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
               ),
 
             const SizedBox(height: 16),
@@ -217,6 +234,29 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 color: Colors.grey[500],
                 fontSize: 12,
               ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () =>
+                      openExternalUrl(context, LegalUrls.termsOfService),
+                  child: const Text(
+                    '利用規約',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+                Text('・', style: TextStyle(color: Colors.grey[500])),
+                TextButton(
+                  onPressed: () =>
+                      openExternalUrl(context, LegalUrls.privacyPolicy),
+                  child: const Text(
+                    'プライバシーポリシー',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

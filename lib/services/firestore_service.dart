@@ -167,29 +167,83 @@ class FirestoreService {
             .toList());
   }
 
+  // ==================== Account deletion ====================
+
+  /// 退会時にその人のデータを消す。
+  ///
+  /// App Store のガイドライン 5.1.1(v) はアカウント削除を求めており、
+  /// Firebase Authentication の利用者を消すだけでは Firestore 側に
+  /// 表示名・自己紹介・投稿が残ってしまう。
+  Future<void> deleteUserData(String uid) async {
+    // 本人しか触れないコレクション。ドキュメント ID が uid のもの。
+    for (final collection in ['users', 'userStats']) {
+      await _db.collection(collection).doc(uid).delete();
+    }
+
+    // uid を持つ行をまとめて消す。件数は多くないので一度に読んで構わない。
+    await _deleteWhere('progress', 'uid', uid);
+    await _deleteWhere('courseProgress', 'userId', uid);
+    await _deleteWhere('bookmarks', 'userId', uid);
+    await _deleteWhere('likes', 'userId', uid);
+    await _deleteWhere('eventParticipations', 'userId', uid);
+    await _deleteWhere('notifications', 'userId', uid);
+    await _deleteWhere('comments', 'authorId', uid);
+    await _deleteWhere('posts', 'authorId', uid);
+  }
+
+  Future<void> _deleteWhere(
+    String collection,
+    String field,
+    String value,
+  ) async {
+    const pageSize = 300;
+
+    while (true) {
+      final snapshot = await _db
+          .collection(collection)
+          .where(field, isEqualTo: value)
+          .limit(pageSize)
+          .get();
+
+      if (snapshot.docs.isEmpty) return;
+
+      final batch = _db.batch();
+      for (final doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+
+      if (snapshot.docs.length < pageSize) return;
+    }
+  }
+
   // ==================== Progress ====================
 
-  Future<VideoProgress?> getProgress(String uid, String videoId) async {
-    final snapshot = await _db
-        .collection('progress')
-        .where('uid', isEqualTo: uid)
-        .where('videoId', isEqualTo: videoId)
-        .limit(1)
-        .get();
+  /// 視聴位置のドキュメント ID。uid と videoId から決まるので、
+  /// 複合インデックスも要らないし、保存が重なっても行が増えない。
+  static String progressId(String uid, String videoId) => '${uid}_$videoId';
 
-    if (snapshot.docs.isEmpty) return null;
-    final doc = snapshot.docs.first;
-    return VideoProgress.fromMap(doc.data(), doc.id);
+  Future<VideoProgress?> getProgress(String uid, String videoId) async {
+    final doc =
+        await _db.collection('progress').doc(progressId(uid, videoId)).get();
+    if (!doc.exists) return null;
+    return VideoProgress.fromMap(doc.data()!, doc.id);
+  }
+
+  Stream<VideoProgress?> progressStream(String uid, String videoId) {
+    return _db
+        .collection('progress')
+        .doc(progressId(uid, videoId))
+        .snapshots()
+        .map((doc) {
+      if (!doc.exists) return null;
+      return VideoProgress.fromMap(doc.data()!, doc.id);
+    });
   }
 
   Future<void> saveProgress(VideoProgress progress) async {
-    if (progress.id.isEmpty) {
-      // Create new
-      await _db.collection('progress').add(progress.toMap());
-    } else {
-      // Update existing
-      await _db.collection('progress').doc(progress.id).update(progress.toMap());
-    }
+    final id = progressId(progress.uid, progress.videoId);
+    await _db.collection('progress').doc(id).set(progress.toMap());
   }
 
   Future<List<VideoProgress>> getUserProgress(String uid) async {
@@ -201,6 +255,125 @@ class FirestoreService {
     return snapshot.docs
         .map((doc) => VideoProgress.fromMap(doc.data(), doc.id))
         .toList();
+  }
+
+  // ==================== Learning records ====================
+
+  /// 視聴位置を保存し、見終わっていれば実績にも反映する。
+  ///
+  /// 視聴中は数十秒おきに呼ばれるため、完了したときだけ集計を触る。
+  Future<void> recordVideoProgress({
+    required String uid,
+    required Video video,
+    required int positionSeconds,
+    String? courseId,
+  }) async {
+    final id = progressId(uid, video.id);
+    final ref = _db.collection('progress').doc(id);
+
+    // 残り 1 割まで見たら完了とみなす。長さ不明の動画は完了にしない。
+    final completed =
+        video.duration > 0 && positionSeconds >= (video.duration * 0.9);
+
+    final before = await ref.get();
+    final wasCompleted = before.exists && (before.data()?['completed'] == true);
+
+    await ref.set(
+      VideoProgress(
+        id: id,
+        uid: uid,
+        videoId: video.id,
+        currentTime: positionSeconds,
+        completed: completed || wasCompleted,
+        updatedAt: DateTime.now(),
+      ).toMap(),
+    );
+
+    if (!completed || wasCompleted) return;
+
+    await _incrementUserStats(uid, {
+      'completedVideos': FieldValue.increment(1),
+      'totalWatchTime': FieldValue.increment((video.duration / 60).round()),
+    });
+
+    if (courseId != null) {
+      await _markCourseVideoCompleted(uid, courseId, video.id);
+    }
+  }
+
+  /// テキストレッスンの読了状態を保存する。
+  Future<void> setLessonCompleted({
+    required String uid,
+    required String lessonId,
+    required bool completed,
+  }) async {
+    await _incrementUserStats(uid, {
+      'completedLessonIds': completed
+          ? FieldValue.arrayUnion([lessonId])
+          : FieldValue.arrayRemove([lessonId]),
+    });
+  }
+
+  /// userStats を部分更新する。ドキュメントがまだ無い場合も作れるよう、
+  /// 既定値をまとめて merge しておく。
+  Future<void> _incrementUserStats(
+    String uid,
+    Map<String, dynamic> changes,
+  ) async {
+    final ref = _db.collection('userStats').doc(uid);
+    final snapshot = await ref.get();
+
+    if (!snapshot.exists) {
+      await ref.set(UserStats.empty(uid).toMap());
+    }
+
+    await ref.update({
+      ...changes,
+      'lastActiveAt': DateTime.now().toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<void> _markCourseVideoCompleted(
+    String uid,
+    String courseId,
+    String videoId,
+  ) async {
+    final course = await getCourse(courseId);
+    final totalVideos = course?.videoIds.length ?? 0;
+    if (totalVideos == 0) return;
+
+    final docId = '${uid}_$courseId';
+    final ref = _db.collection('courseProgress').doc(docId);
+    final snapshot = await ref.get();
+
+    final completedIds = <String>{
+      ...?(snapshot.data()?['completedVideoIds'] as List?)?.cast<String>(),
+      videoId,
+    };
+    final wasCompleted = snapshot.data()?['isCompleted'] == true;
+    final percent = completedIds.length / totalVideos;
+    final isCompleted = completedIds.length >= totalVideos;
+    final now = DateTime.now();
+
+    await ref.set(
+      CourseProgress(
+        id: docId,
+        userId: uid,
+        courseId: courseId,
+        completedVideoIds: completedIds.toList(),
+        progressPercent: percent,
+        isCompleted: isCompleted,
+        completedAt: isCompleted ? now : null,
+        updatedAt: now,
+      ).toMap(),
+    );
+
+    if (isCompleted && !wasCompleted) {
+      await _incrementUserStats(uid, {
+        'completedCourses': FieldValue.increment(1),
+      });
+    }
   }
 
   // ==================== Categories ====================
@@ -541,6 +714,9 @@ class FirestoreService {
         .collection('notifications')
         .where('userId', isEqualTo: userId)
         .where('isRead', isEqualTo: false)
+        // バッジに出す数字なので、それ以上は数えても意味がない。
+        // 未読が溜まった人の読み取り回数が青天井にならないようにする。
+        .limit(99)
         .snapshots()
         .map((snapshot) => snapshot.docs.length);
   }

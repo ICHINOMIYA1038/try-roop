@@ -20,7 +20,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -39,6 +39,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
           tabs: const [
             Tab(text: '動画'),
             Tab(text: 'コース'),
+            Tab(text: 'レッスン'),
             Tab(text: '投稿'),
           ],
         ),
@@ -48,6 +49,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
         children: [
           _BookmarkList(targetType: BookmarkTargetType.video),
           _BookmarkList(targetType: BookmarkTargetType.course),
+          _BookmarkList(targetType: BookmarkTargetType.textLesson),
           _BookmarkList(targetType: BookmarkTargetType.post),
         ],
       ),
@@ -109,6 +111,8 @@ class _BookmarkList extends ConsumerWidget {
         return 'コース';
       case BookmarkTargetType.post:
         return '投稿';
+      case BookmarkTargetType.textLesson:
+        return 'レッスン';
     }
   }
 
@@ -122,6 +126,9 @@ class _BookmarkList extends ConsumerWidget {
         break;
       case BookmarkTargetType.post:
         context.push('/post/${bookmark.targetId}');
+        break;
+      case BookmarkTargetType.textLesson:
+        context.push('/text-lesson/${bookmark.targetId}');
         break;
     }
   }
@@ -212,6 +219,46 @@ class _BookmarkItem extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text('${course.videoCount}本 / ${course.totalDurationFormatted}'),
+                onTap: onTap,
+              ),
+            );
+          },
+          loading: () => const Card(
+            child: ListTile(
+              title: Text('読み込み中...'),
+            ),
+          ),
+          error: (_, __) => const SizedBox.shrink(),
+        );
+
+      case BookmarkTargetType.textLesson:
+        final lessonAsync =
+            ref.watch(textLessonProvider(bookmark.targetId));
+        return lessonAsync.when(
+          data: (lesson) {
+            if (lesson == null) {
+              return const SizedBox.shrink();
+            }
+            return Card(
+              child: ListTile(
+                leading: Container(
+                  width: 80,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF8A3D).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.article_outlined,
+                    color: Color(0xFFFF8A3D),
+                  ),
+                ),
+                title: Text(
+                  lesson.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text('${lesson.estimatedReadingMinutes}分で読めます'),
                 onTap: onTap,
               ),
             );

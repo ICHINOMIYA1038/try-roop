@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 class SubscriptionService {
-  // RevenueCat API Keys (replace with your actual keys)
-  static const String _apiKeyIOS = 'YOUR_REVENUECAT_IOS_API_KEY';
-  static const String _apiKeyAndroid = 'YOUR_REVENUECAT_ANDROID_API_KEY';
+  // RevenueCat API Keys (provided via --dart-define from .env at build time)
+  static const String _apiKeyIOS =
+      String.fromEnvironment('REVENUECAT_IOS_API_KEY');
+  static const String _apiKeyAndroid =
+      String.fromEnvironment('REVENUECAT_ANDROID_API_KEY');
 
   static String get _apiKey => Platform.isIOS ? _apiKeyIOS : _apiKeyAndroid;
 
@@ -13,11 +17,11 @@ class SubscriptionService {
 
   // Initialize RevenueCat
   static Future<void> init() async {
-    await Purchases.setLogLevel(LogLevel.debug);
+    await Purchases.setLogLevel(
+      kReleaseMode ? LogLevel.error : LogLevel.debug,
+    );
 
-    PurchasesConfiguration configuration;
-    configuration = PurchasesConfiguration(_apiKey);
-
+    final configuration = PurchasesConfiguration(_apiKey);
     await Purchases.configure(configuration);
   }
 
@@ -44,6 +48,43 @@ class SubscriptionService {
   // Add listener for customer info updates
   void addCustomerInfoListener(void Function(CustomerInfo) listener) {
     Purchases.addCustomerInfoUpdateListener(listener);
+  }
+
+  /// プレミアム権限の有無を流し続ける。
+  ///
+  /// [isPremium] は呼んだ瞬間の状態しか返さないため、購入・復元・失効を
+  /// 画面が取りこぼしてしまう。RevenueCat の更新通知を購読して、
+  /// 変化するたびに流し直す。
+  Stream<bool> premiumStream() {
+    final controller = StreamController<bool>();
+    var latest = false;
+
+    void emit(bool value) {
+      if (controller.isClosed) return;
+      latest = value;
+      controller.add(value);
+    }
+
+    bool hasEntitlement(CustomerInfo info) =>
+        info.entitlements.all[entitlementId]?.isActive ?? false;
+
+    void onUpdate(CustomerInfo info) => emit(hasEntitlement(info));
+
+    controller.onListen = () async {
+      Purchases.addCustomerInfoUpdateListener(onUpdate);
+      try {
+        emit(hasEntitlement(await Purchases.getCustomerInfo()));
+      } catch (e) {
+        debugPrint('premiumStream: failed to read customer info: $e');
+        emit(latest);
+      }
+    };
+
+    controller.onCancel = () {
+      Purchases.removeCustomerInfoUpdateListener(onUpdate);
+    };
+
+    return controller.stream;
   }
 
   // Get available packages

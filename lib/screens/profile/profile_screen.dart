@@ -1,9 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../config/app_links.dart';
+import '../../config/legal_urls.dart';
 import '../../providers/providers.dart';
+import '../../services/review_prompt_service.dart';
+import '../../services/share_service.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -62,19 +67,34 @@ class ProfileScreen extends ConsumerWidget {
       ),
     );
 
-    if (shouldDelete == true) {
-      try {
-        await ref.read(authServiceProvider).deleteAccount();
-        if (context.mounted) {
-          context.go('/login');
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${e.toString()}')),
-          );
-        }
+    if (shouldDelete != true) return;
+
+    final uid = ref.read(currentUserProvider)?.uid;
+    if (uid == null) return;
+
+    try {
+      // 先に Firestore 側を消す。認証を消してしまうと権限が無くなり、
+      // 表示名や投稿が残ったままになる。
+      await ref.read(firestoreServiceProvider).deleteUserData(uid);
+      await ref.read(authServiceProvider).deleteAccount();
+      if (context.mounted) {
+        context.go('/login');
       }
+    } on FirebaseAuthException catch (e) {
+      if (!context.mounted) return;
+      final message = switch (e.code) {
+        'reauth-cancelled' => '確認のためのログインが中止されたため、削除を取り消しました',
+        'unsupported-provider' => 'この方法ではアプリから削除できません。お問い合わせください',
+        _ => 'アカウントを削除できませんでした。時間をおいてお試しください',
+      };
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('アカウントを削除できませんでした')),
+      );
     }
   }
 
@@ -391,28 +411,39 @@ class ProfileScreen extends ConsumerWidget {
                     onTap: () => context.push('/announcements'),
                   ),
                   const _MenuDivider(),
+                  // 口コミとレビューの導線。どちらも今までアプリ内に無かった。
+                  _MenuItem(
+                    icon: Icons.ios_share,
+                    title: '友だちに教える',
+                    onTap: () => ShareService.shareApp(),
+                  ),
+                  const _MenuDivider(),
+                  _MenuItem(
+                    icon: Icons.star_outline,
+                    title: 'このアプリを評価する',
+                    onTap: () =>
+                        ReviewPromptService.openStoreListing(AppLinks.appStoreId),
+                  ),
+                  const _MenuDivider(),
                   _MenuItem(
                     icon: Icons.help_outline,
                     title: 'ヘルプ・お問い合わせ',
-                    onTap: () {
-                      // TODO: Navigate to help
-                    },
+                    onTap: () =>
+                        openExternalUrl(context, LegalUrls.supportContact),
                   ),
                   const _MenuDivider(),
                   _MenuItem(
                     icon: Icons.description_outlined,
                     title: '利用規約',
-                    onTap: () {
-                      // TODO: Navigate to terms
-                    },
+                    onTap: () =>
+                        openExternalUrl(context, LegalUrls.termsOfService),
                   ),
                   const _MenuDivider(),
                   _MenuItem(
                     icon: Icons.privacy_tip_outlined,
                     title: 'プライバシーポリシー',
-                    onTap: () {
-                      // TODO: Navigate to privacy policy
-                    },
+                    onTap: () =>
+                        openExternalUrl(context, LegalUrls.privacyPolicy),
                   ),
                 ],
               ),

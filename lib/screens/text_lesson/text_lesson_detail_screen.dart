@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/bookmark.dart';
 import '../../models/text_lesson.dart';
+import '../../models/user_stats.dart';
 import '../../providers/providers.dart';
 import '../../widgets/app_markdown.dart';
+import '../../services/analytics_service.dart';
+import '../../services/review_prompt_service.dart';
+import '../../services/share_service.dart';
+import '../../widgets/premium_lock.dart';
 
 class TextLessonDetailScreen extends ConsumerStatefulWidget {
   final String lessonId;
@@ -20,7 +26,9 @@ class _TextLessonDetailScreenState
   String? _markdownContent;
   bool _isLoading = true;
   String? _error;
-  bool _isCompleted = false; // Local state for demo
+  // 保存中だけ先に見せる状態。確定した値は userStats から読む。
+  bool? _pendingCompleted;
+  bool _savingStatus = false;
 
   @override
   void initState() {
@@ -63,7 +71,65 @@ class _TextLessonDetailScreenState
     }
   }
 
-  void _showStatusMenu() {
+  bool _isCompletedFrom(UserStats? stats) {
+    return _pendingCompleted ??
+        (stats?.completedLessonIds.contains(widget.lessonId) ?? false);
+  }
+
+  /// 読了状態を保存する。以前は画面を離れると消えるローカル変数だった。
+  Future<void> _setCompleted(bool completed) async {
+    if (_savingStatus) return;
+
+    final uid = ref.read(currentUserProvider)?.uid;
+    if (uid == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('学習状況の記録にはログインが必要です')),
+      );
+      return;
+    }
+
+    setState(() {
+      _savingStatus = true;
+      _pendingCompleted = completed;
+    });
+
+    try {
+      await ref.read(firestoreServiceProvider).setLessonCompleted(
+            uid: uid,
+            lessonId: widget.lessonId,
+            completed: completed,
+          );
+      if (completed) {
+        AnalyticsService.lessonCompleted(widget.lessonId);
+        // 学び終えた直後は、評価をお願いするのに一番よいタイミング。
+        ReviewPromptService.recordCompletion();
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            completed ? '学習を完了しました！お疲れ様です🎉' : 'ステータスを「未完了」に戻しました',
+          ),
+          backgroundColor: completed ? Colors.green : null,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('学習状況を保存できませんでした')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _savingStatus = false;
+          _pendingCompleted = null;
+        });
+      }
+    }
+  }
+
+  void _showStatusMenu(bool isCompleted) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -96,15 +162,10 @@ class _TextLessonDetailScreenState
                     child: const Icon(Icons.radio_button_unchecked, color: Colors.grey),
                   ),
                   title: const Text('未完了に戻す'),
-                  trailing: !_isCompleted ? const Icon(Icons.check, color: Colors.orange) : null,
+                  trailing: !isCompleted ? const Icon(Icons.check, color: Colors.orange) : null,
                   onTap: () {
-                    setState(() {
-                      _isCompleted = false;
-                    });
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('ステータスを「未完了」に戻しました')),
-                    );
+                    _setCompleted(false);
                   },
                 ),
                 ListTile(
@@ -117,18 +178,10 @@ class _TextLessonDetailScreenState
                     child: const Icon(Icons.check_circle, color: Colors.green),
                   ),
                   title: const Text('完了にする'),
-                  trailing: _isCompleted ? const Icon(Icons.check, color: Colors.orange) : null,
+                  trailing: isCompleted ? const Icon(Icons.check, color: Colors.orange) : null,
                   onTap: () {
-                    setState(() {
-                      _isCompleted = true;
-                    });
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('学習を完了しました！お疲れ様です🎉'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
+                    _setCompleted(true);
                   },
                 ),
                 const SizedBox(height: 16),
@@ -147,6 +200,7 @@ class _TextLessonDetailScreenState
   @override
   Widget build(BuildContext context) {
     final lessonAsync = ref.watch(textLessonProvider(widget.lessonId));
+    final isCompleted = _isCompletedFrom(ref.watch(userStatsProvider).value);
 
     return lessonAsync.when(
       loading: () => Scaffold(
@@ -168,21 +222,32 @@ class _TextLessonDetailScreenState
           );
         }
 
+        // 有料レッスンは課金状態を確かめてから本文を出す。一覧の鍵表示だけでは
+        // 検索結果やブックマークから直接開かれたときに素通りしてしまう。
+        if (!ref.watch(canAccessLessonProvider(lesson))) {
+          AnalyticsService.paywallBlocked('lesson', lesson.id);
+          return PremiumLock(
+            title: lesson.title,
+            message: 'このレッスンはプレミアムプランでお読みいただけます。',
+          );
+        }
+
         return Scaffold(
           backgroundColor: const Color(0xFFF9F7F4),
           body: _buildBody(lesson),
           floatingActionButton: _isLoading || _error != null
               ? null
               : FloatingActionButton.extended(
-                  onPressed: _showStatusMenu,
-                  backgroundColor: _isCompleted ? Colors.green : const Color(0xFFFF8A3D),
+                  onPressed: () => _showStatusMenu(isCompleted),
+                  backgroundColor:
+                      isCompleted ? Colors.green : const Color(0xFFFF8A3D),
                   elevation: 4,
                   icon: Icon(
-                    _isCompleted ? Icons.check_circle : Icons.check,
+                    isCompleted ? Icons.check_circle : Icons.check,
                     color: Colors.white,
                   ),
                   label: Text(
-                    _isCompleted ? '完了済み' : '学習完了にする',
+                    isCompleted ? '完了済み' : '学習完了にする',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -233,12 +298,10 @@ class _TextLessonDetailScreenState
           actions: [
             IconButton(
               icon: const Icon(Icons.share_outlined),
-              onPressed: () {},
+              tooltip: '共有',
+              onPressed: () => ShareService.shareLesson(lesson.title),
             ),
-            IconButton(
-              icon: const Icon(Icons.bookmark_border),
-              onPressed: () {},
-            ),
+            _BookmarkButton(lessonId: lesson.id),
           ],
         ),
         SliverToBoxAdapter(
@@ -304,6 +367,50 @@ class _TextLessonDetailScreenState
           ),
         ),
       ],
+    );
+  }
+}
+
+
+/// レッスンのブックマーク切り替え。押しても何も起きないボタンが残っていたので、
+/// 動画やコースと同じ仕組みにつないでいる。
+class _BookmarkButton extends ConsumerWidget {
+  final String lessonId;
+
+  const _BookmarkButton({required this.lessonId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final params = (
+      type: BookmarkTargetType.textLesson,
+      targetId: lessonId,
+    );
+    final isBookmarked = ref.watch(hasBookmarkedProvider(params)).value ?? false;
+
+    return IconButton(
+      icon: Icon(isBookmarked ? Icons.bookmark : Icons.bookmark_border),
+      tooltip: isBookmarked ? 'ブックマークを外す' : 'ブックマークに追加',
+      onPressed: () async {
+        final uid = ref.read(currentUserProvider)?.uid;
+        if (uid == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('ブックマークにはログインが必要です')),
+          );
+          return;
+        }
+        try {
+          await ref.read(firestoreServiceProvider).toggleBookmark(
+                uid,
+                BookmarkTargetType.textLesson,
+                lessonId,
+              );
+        } catch (e) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('ブックマークを更新できませんでした')),
+          );
+        }
+      },
     );
   }
 }

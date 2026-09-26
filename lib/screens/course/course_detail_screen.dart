@@ -9,18 +9,22 @@ import '../../providers/providers.dart';
 class CourseDetailScreen extends ConsumerWidget {
   final String courseId;
 
-  const CourseDetailScreen({
-    super.key,
-    required this.courseId,
-  });
+  const CourseDetailScreen({super.key, required this.courseId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final courseAsync = ref.watch(courseProvider(courseId));
     final progressAsync = ref.watch(courseProgressProvider(courseId));
-    final hasBookmarked = ref.watch(hasBookmarkedProvider(
-      (type: BookmarkTargetType.course, targetId: courseId),
-    )).value ?? false;
+    final hasBookmarked =
+        ref
+            .watch(
+              hasBookmarkedProvider((
+                type: BookmarkTargetType.course,
+                targetId: courseId,
+              )),
+            )
+            .value ??
+        false;
 
     return courseAsync.when(
       data: (course) {
@@ -49,11 +53,13 @@ class CourseDetailScreen extends ConsumerWidget {
                     onPressed: () {
                       final user = ref.read(currentUserProvider);
                       if (user != null) {
-                        ref.read(firestoreServiceProvider).toggleBookmark(
-                          user.uid,
-                          BookmarkTargetType.course,
-                          courseId,
-                        );
+                        ref
+                            .read(firestoreServiceProvider)
+                            .toggleBookmark(
+                              user.uid,
+                              BookmarkTargetType.course,
+                              courseId,
+                            );
                       }
                     },
                   ),
@@ -135,9 +141,7 @@ class CourseDetailScreen extends ConsumerWidget {
                           children: [
                             const Text(
                               '進捗',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             Text(
                               '${(progress.progressPercent * 100).toInt()}%',
@@ -210,10 +214,7 @@ class CourseDetailScreen extends ConsumerWidget {
                       ),
                       Text(
                         '${progress?.completedCount ?? 0}/${course.videoCount}完了',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
                       ),
                     ],
                   ),
@@ -222,107 +223,106 @@ class CourseDetailScreen extends ConsumerWidget {
 
               // Video List
               SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final video = videos[index];
-                    final isCompleted =
-                        progress?.completedVideoIds.contains(video.id) ?? false;
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final video = videos[index];
+                  final isCompleted =
+                      progress?.completedVideoIds.contains(video.id) ?? false;
 
-                    return ListTile(
-                      leading: Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: CachedNetworkImage(
-                              imageUrl: video.youtubeThumbnail,
-                              width: 80,
-                              height: 45,
-                              fit: BoxFit.cover,
-                            ),
+                  return ListTile(
+                    leading: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: CachedNetworkImage(
+                            imageUrl: video.youtubeThumbnail,
+                            width: 80,
+                            height: 45,
+                            fit: BoxFit.cover,
                           ),
-                          if (isCompleted)
-                            Positioned.fill(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.green.withOpacity(0.7),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                ),
+                        ),
+                        if (isCompleted)
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.green.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.check,
+                                color: Colors.white,
                               ),
                             ),
-                        ],
-                      ),
-                      title: Text(
-                        video.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                      subtitle: Text(
-                        video.durationFormatted,
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
-                      ),
-                      trailing: Icon(
-                        Icons.play_arrow,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      onTap: () => context.push(
-                        '/video/${video.id}',
-                        extra: {'courseId': courseId},
-                      ),
-                    );
-                  },
-                  childCount: videos.length,
-                ),
+                          ),
+                      ],
+                    ),
+                    title: Text(
+                      video.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    subtitle: Text(
+                      video.durationFormatted,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                    trailing: Icon(
+                      Icons.play_arrow,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    onTap: () => context.push(
+                      '/video/${video.id}',
+                      extra: {'courseId': courseId},
+                    ),
+                  );
+                }, childCount: videos.length),
               ),
 
               const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
             ],
           ),
-          bottomNavigationBar: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Find first unwatched video or start from beginning
-                  final firstUnwatched = videos.firstWhere(
-                    (v) => !(progress?.completedVideoIds.contains(v.id) ?? false),
-                    orElse: () => videos.first,
-                  );
-                  context.push(
-                    '/video/${firstUnwatched.id}',
-                    extra: {'courseId': courseId},
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+          // 動画が 1 本も紐付いていないコースでは videos.first が例外になるため、
+          // 再生ボタン自体を出さない。
+          bottomNavigationBar: videos.isEmpty
+              ? null
+              : SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Find first unwatched video or start from beginning
+                        final firstUnwatched = videos.firstWhere(
+                          (v) =>
+                              !(progress?.completedVideoIds.contains(v.id) ??
+                                  false),
+                          orElse: () => videos.first,
+                        );
+                        context.push(
+                          '/video/${firstUnwatched.id}',
+                          extra: {'courseId': courseId},
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        progress != null && progress.progressPercent > 0
+                            ? '続きから視聴'
+                            : 'コースを開始',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                child: Text(
-                  progress != null && progress.progressPercent > 0
-                      ? '続きから視聴'
-                      : 'コースを開始',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
         );
       },
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, stack) => Scaffold(
         appBar: AppBar(),
         body: Center(child: Text('エラー: $error')),
@@ -346,10 +346,7 @@ class _InfoChip extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _InfoChip({
-    required this.icon,
-    required this.label,
-  });
+  const _InfoChip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -364,13 +361,7 @@ class _InfoChip extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: Colors.grey[700]),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[700],
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
         ],
       ),
     );

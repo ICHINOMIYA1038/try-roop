@@ -10,42 +10,15 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  // Current user stream
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Current user
   User? get currentUser => _auth.currentUser;
 
-  // Email Sign Up
-  Future<UserCredential> signUpWithEmail({
-    required String email,
-    required String password,
-  }) async {
-    return await _auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-  }
-
-  // Email Sign In
-  Future<UserCredential> signInWithEmail({
-    required String email,
-    required String password,
-  }) async {
-    return await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-  }
-
-  // Google Sign In
   Future<UserCredential?> signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+    final googleUser = await _googleSignIn.signIn();
     if (googleUser == null) return null;
 
-    final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
-
+    final googleAuth = await googleUser.authentication;
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
@@ -54,7 +27,8 @@ class AuthService {
     return await _auth.signInWithCredential(credential);
   }
 
-  // Apple Sign In
+  // Apple Sign-In は App Store Guideline 4.8 で iOS では必須。
+  // Google など他の SSO だけだと審査でリジェクトされるため併設する。
   Future<UserCredential> signInWithApple() async {
     final rawNonce = _generateNonce();
     final nonce = _sha256ofString(rawNonce);
@@ -75,37 +49,93 @@ class AuthService {
     return await _auth.signInWithCredential(oauthCredential);
   }
 
-  // Password Reset
-  Future<void> sendPasswordResetEmail(String email) async {
-    await _auth.sendPasswordResetEmail(email: email);
-  }
-
-  // Sign Out
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
 
-  // Delete Account
+  /// 退会処理。
+  ///
+  /// Firebase は最後のログインから時間が経っていると delete を拒否する
+  /// (requires-recent-login)。その場合は同じ提供元で認証し直してからやり直す。
   Future<void> deleteAccount() async {
-    await _auth.currentUser?.delete();
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await user.delete();
+    } on FirebaseAuthException catch (e) {
+      if (e.code != 'requires-recent-login') rethrow;
+      await reauthenticate();
+      await _auth.currentUser?.delete();
+    }
   }
 
-  // Update Display Name
+  /// いま使っているログイン方法でもう一度認証する。
+  Future<void> reauthenticate() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'no-current-user',
+        message: 'ログインしていません',
+      );
+    }
+
+    final providers = user.providerData.map((p) => p.providerId).toList();
+
+    if (providers.contains('apple.com')) {
+      final rawNonce = _generateNonce();
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [AppleIDAuthorizationScopes.email],
+        nonce: _sha256ofString(rawNonce),
+      );
+      await user.reauthenticateWithCredential(
+        OAuthProvider('apple.com').credential(
+          idToken: appleCredential.identityToken,
+          rawNonce: rawNonce,
+        ),
+      );
+      return;
+    }
+
+    if (providers.contains('google.com')) {
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        throw FirebaseAuthException(
+          code: 'reauth-cancelled',
+          message: '確認のためのログインが中止されました',
+        );
+      }
+      final googleAuth = await googleUser.authentication;
+      await user.reauthenticateWithCredential(
+        GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        ),
+      );
+      return;
+    }
+
+    throw FirebaseAuthException(
+      code: 'unsupported-provider',
+      message: 'この方法では再認証できません',
+    );
+  }
+
   Future<void> updateDisplayName(String displayName) async {
     await _auth.currentUser?.updateDisplayName(displayName);
   }
 
-  // Helper: Generate nonce for Apple Sign In
   String _generateNonce([int length = 32]) {
     const charset =
         '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
     final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
-        .join();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
   }
 
-  // Helper: SHA256 hash
   String _sha256ofString(String input) {
     final bytes = utf8.encode(input);
     final digest = sha256.convert(bytes);

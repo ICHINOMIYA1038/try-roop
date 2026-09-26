@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,7 @@ import '../../models/video.dart';
 import '../../models/course.dart';
 import '../../models/post.dart';
 import '../../providers/providers.dart';
+import '../../services/analytics_service.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -19,6 +22,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
     with SingleTickerProviderStateMixin {
   final _searchController = TextEditingController();
   late TabController _tabController;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -28,9 +32,24 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     _tabController.dispose();
     super.dispose();
+  }
+
+  /// 1 文字打つたびに Firestore へ 3 本クエリを投げていたので、
+  /// 入力が落ち着いてから一度だけ検索する。
+  void _onQueryChanged(String value) {
+    setState(() {});
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
+      ref.read(searchQueryProvider.notifier).state = value;
+      if (value.trim().isNotEmpty) {
+        AnalyticsService.searched(value.trim());
+      }
+    });
   }
 
   @override
@@ -50,12 +69,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
                     icon: const Icon(Icons.clear),
                     onPressed: () {
                       _searchController.clear();
+                      _debounce?.cancel();
+                      setState(() {});
                       ref.read(searchQueryProvider.notifier).state = '';
                     },
                   )
                 : null,
           ),
-          onChanged: (value) {
+          textInputAction: TextInputAction.search,
+          onChanged: _onQueryChanged,
+          onSubmitted: (value) {
+            _debounce?.cancel();
             ref.read(searchQueryProvider.notifier).state = value;
           },
         ),

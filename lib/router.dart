@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'config/admin_config.dart';
 import 'main.dart' show isDemoMode;
 import 'providers/providers.dart';
+import 'services/analytics_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/video/video_player_screen.dart';
@@ -41,6 +43,9 @@ const _authRequiredRoutes = [
   '/dashboard',
   '/members',
   '/events',
+  // 管理画面。書き込みは Firestore のルールでも弾かれるが、
+  // 未ログインのまま画面に入れてしまうのは避ける。
+  '/admin',
 ];
 
 bool _requiresAuth(String location) {
@@ -76,8 +81,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
 
+      // 管理画面は運営者だけ。書き込みは Firestore 側でも止まるが、
+      // 一般利用者に編集画面を見せる必要はない。
+      if (currentLocation.startsWith('/admin') &&
+          !isAdminEmail(authState.value?.email)) {
+        return '/';
+      }
+
       return null;
     },
+    observers: [AnalyticsService.observer],
     routes: [
       // Login
       GoRoute(

@@ -1,5 +1,5 @@
 name: tryroop_campus_live_flutter
-description: "A new Flutter project."
+description: "TryRoop Campus Live — 学習動画とコミュニティのモバイルアプリ"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -39,9 +39,21 @@ dependencies:
   firebase_core: ^3.8.1
   firebase_auth: ^5.3.4
   cloud_firestore: ^5.6.0
+  # 流入経路と離脱箇所を見るために入れている。これが無いと施策の効果が測れない。
+  firebase_analytics: ^11.3.6
+  firebase_crashlytics: ^4.2.0
+
+  # 共有 (アプリの導線を外に出すため)
+  share_plus: ^10.1.2
+
+  # 評価依頼。公開から 4 か月でレビュー 0 件のままだと、
+  # 検索結果に出てもインストールされない。
+  in_app_review: ^2.0.9
+  shared_preferences: ^2.3.3
 
   # Authentication
   google_sign_in: ^6.2.2
+  # iOS で Sign in with Apple が必須 (App Store Guideline 4.8) のため併設
   sign_in_with_apple: ^6.1.4
   crypto: ^3.0.6
 
@@ -64,6 +76,9 @@ dependencies:
   # Markdown
   flutter_markdown: ^0.7.4+3
 
+  # External URL launcher (used for Privacy Policy / Terms links)
+  url_launcher: ^6.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -74,6 +89,19 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  # Generates platform-specific app icons from a single source PNG.
+  # Run `dart run flutter_launcher_icons` after replacing
+  # assets/branding/icon-1024.png with the real logo.
+  flutter_launcher_icons: ^0.14.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/branding/icon-1024.png"
+  adaptive_icon_background: "#FF8A3D"
+  adaptive_icon_foreground: "assets/branding/icon-foreground-1024.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

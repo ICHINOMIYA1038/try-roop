@@ -1,84 +1,184 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // ----- ヘルパー -----
+    // admin custom claim を持つユーザー (tool/setAdminClaim.js で付与) は
+    // 管理画面 (site/app/admin) からあらゆるコレクションを操作できる。
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // まだ作られていないドキュメントを取りにいくと resource が null になり、
+    // resource.data を見る条件が評価できずに拒否される。初回の視聴や
+    // ブックマーク確認で必ず通る道なので、null を明示的に許す。
+    function missing() {
+      return resource == null;
+    }
+
+    // 今回の更新で「指定したフィールドしか変わっていない」ことを確かめる。
+    // いいね数やコメント数のように、投稿者以外も増減させる必要がある
+    // カウンタだけを他人に開放するために使う。
+    function onlyChanges(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
     // Users collection
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId) || isAdmin();
     }
 
     // User stats
     match /userStats/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId) || isAdmin();
     }
 
-    // Videos (read-only for authenticated users)
+    // Videos (read-only for authenticated users / admin can write)
     match /videos/{videoId} {
-      allow read: if request.auth != null;
-      allow write: if false; // Admin only via console
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // Categories (read-only)
+    // Chapters (動画のチャプター。videoId で引く読み取り専用データ)
+    match /chapters/{chapterId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Categories (read-only / admin can write)
     match /categories/{categoryId} {
-      allow read: if request.auth != null;
-      allow write: if false;
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // Courses (read-only)
+    // Courses (read-only / admin can write)
     match /courses/{courseId} {
-      allow read: if request.auth != null;
-      allow write: if false;
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Text lessons (read-only / admin can write)
+    match /textLessons/{lessonId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // 動画の視聴位置。ドキュメント ID は自動採番なので uid フィールドで判定する。
+    match /progress/{progressId} {
+      allow read: if missing() || isOwner(resource.data.uid) || isAdmin();
+      allow create: if isOwner(request.resource.data.uid);
+      allow update: if isOwner(resource.data.uid)
+        && request.resource.data.uid == resource.data.uid;
+      allow delete: if isOwner(resource.data.uid) || isAdmin();
+    }
+
+    // コースの進捗。ドキュメント ID は "{userId}_{courseId}"。
+    match /courseProgress/{progressId} {
+      allow read: if missing() || isOwner(resource.data.userId) || isAdmin();
+      allow create: if isOwner(request.resource.data.userId);
+      allow update: if isOwner(resource.data.userId)
+        && request.resource.data.userId == resource.data.userId;
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
 
     // Posts (community)
+    // 本文の編集・削除は投稿者だけ。いいね数とコメント数は他人も増減させる。
     match /posts/{postId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.authorId;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow delete: if isOwner(resource.data.authorId) || isAdmin();
+      allow update: if isOwner(resource.data.authorId)
+        || isAdmin()
+        || (isSignedIn() && onlyChanges(['likeCount', 'commentCount']));
     }
 
     // Comments
     match /comments/{commentId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.authorId;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow delete: if isOwner(resource.data.authorId) || isAdmin();
+      allow update: if isOwner(resource.data.authorId)
+        || isAdmin()
+        || (isSignedIn() && onlyChanges(['likeCount']));
     }
 
     // Likes
     match /likes/{likeId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+      allow update: if false;
     }
 
     // Bookmarks
     match /bookmarks/{bookmarkId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow write: if request.auth != null;
+      allow read: if missing() || isOwner(resource.data.userId) || isAdmin();
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+      allow update: if false;
     }
 
-    // Notifications
+    // Notifications: 作成は Cloud Functions 等のサーバー側 (admin) を想定。
+    // クライアントは自分宛の既読更新のみ許可。
     match /notifications/{notificationId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow write: if request.auth != null;
+      allow read: if missing() || isOwner(resource.data.userId) || isAdmin();
+      allow update: if isOwner(resource.data.userId)
+        && request.resource.data.userId == resource.data.userId;
+      // 退会時に自分宛の通知を消せる必要がある。
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isAdmin();
     }
 
-    // Announcements (read-only)
+    // Announcements (read-only / admin can write)
     match /announcements/{announcementId} {
-      allow read: if request.auth != null;
-      allow write: if false;
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // Badges (read-only)
+    // Badges (read-only / admin can write)
     match /badges/{badgeId} {
-      allow read: if request.auth != null;
-      allow write: if false;
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // Live schedules (read-only)
+    // Live schedules (read-only / admin can write)
     match /liveSchedules/{scheduleId} {
-      allow read: if request.auth != null;
-      allow write: if false;
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Events (内容の編集は admin。参加人数だけ申込・キャンセルで増減する)
+    match /events/{eventId} {
+      allow read: if isSignedIn();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (isSignedIn() && onlyChanges(['currentParticipants']));
+    }
+
+    // Event participations
+    // ドキュメント ID は "{userId}_{eventId}"。自分の申込は自分で作成・更新する。
+    // キャンセル時のキャンセル待ち繰り上げだけは他人の行を触る必要があるため、
+    // status と waitlistPosition に限って許可している。
+    // TODO: Cloud Functions を用意できたらサーバー側に移す。
+    match /eventParticipations/{participationId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(request.resource.data.userId);
+      allow update: if isAdmin()
+        || (isOwner(resource.data.userId)
+          && request.resource.data.userId == resource.data.userId)
+        || (isSignedIn() && onlyChanges(['status', 'waitlistPosition']));
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
   }
 }

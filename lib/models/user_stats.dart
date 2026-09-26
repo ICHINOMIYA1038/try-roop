@@ -5,6 +5,7 @@ class UserStats {
   final int completedCourses;
   final int completedVideos;
   final List<String> badgeIds;
+  final List<String> completedLessonIds;
   final int consecutiveDays;
   final DateTime? lastActiveAt;
   final DateTime updatedAt;
@@ -16,6 +17,7 @@ class UserStats {
     required this.completedCourses,
     required this.completedVideos,
     required this.badgeIds,
+    this.completedLessonIds = const [],
     required this.consecutiveDays,
     this.lastActiveAt,
     required this.updatedAt,
@@ -29,6 +31,7 @@ class UserStats {
       completedCourses: map['completedCourses'] ?? 0,
       completedVideos: map['completedVideos'] ?? 0,
       badgeIds: List<String>.from(map['badgeIds'] ?? []),
+      completedLessonIds: List<String>.from(map['completedLessonIds'] ?? []),
       consecutiveDays: map['consecutiveDays'] ?? 0,
       lastActiveAt: map['lastActiveAt'] != null
           ? DateTime.parse(map['lastActiveAt'])
@@ -44,6 +47,7 @@ class UserStats {
       'completedCourses': completedCourses,
       'completedVideos': completedVideos,
       'badgeIds': badgeIds,
+      'completedLessonIds': completedLessonIds,
       'consecutiveDays': consecutiveDays,
       'lastActiveAt': lastActiveAt?.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
@@ -57,6 +61,7 @@ class UserStats {
     int? completedCourses,
     int? completedVideos,
     List<String>? badgeIds,
+    List<String>? completedLessonIds,
     int? consecutiveDays,
     DateTime? lastActiveAt,
     DateTime? updatedAt,
@@ -68,6 +73,7 @@ class UserStats {
       completedCourses: completedCourses ?? this.completedCourses,
       completedVideos: completedVideos ?? this.completedVideos,
       badgeIds: badgeIds ?? this.badgeIds,
+      completedLessonIds: completedLessonIds ?? this.completedLessonIds,
       consecutiveDays: consecutiveDays ?? this.consecutiveDays,
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -90,6 +96,7 @@ class UserStats {
       completedCourses: 0,
       completedVideos: 0,
       badgeIds: [],
+      completedLessonIds: [],
       consecutiveDays: 0,
       updatedAt: DateTime.now(),
     );

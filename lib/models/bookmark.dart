@@ -45,4 +45,5 @@ enum BookmarkTargetType {
   video,
   course,
   post,
+  textLesson,
 }

@@ -1,41 +1,71 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import 'firebase_options.dart';
 import 'router.dart';
 import 'services/subscription_service.dart';
 
-// Global flag for demo mode (when Firebase is not configured)
-bool isDemoMode = true;
+// Demo mode is controlled at build time via --dart-define=DEMO_MODE=true.
+// Release builds default to false. Falls back to true at runtime only if
+// Firebase initialization fails in debug builds.
+bool isDemoMode = const bool.fromEnvironment('DEMO_MODE', defaultValue: false);
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // クラッシュを拾いたいので、起動処理ごと同じゾーンで包む。
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase (with error handling for demo mode)
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    debugPrint('Firebase not configured, running in demo mode: $e');
-    isDemoMode = true;
-  }
-
-  // Initialize RevenueCat (skip in demo mode)
-  if (!isDemoMode) {
     try {
-      await SubscriptionService.init();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
     } catch (e) {
-      debugPrint('RevenueCat initialization failed: $e');
+      if (kDebugMode) {
+        debugPrint('Firebase init failed, falling back to demo mode: $e');
+        isDemoMode = true;
+      } else {
+        rethrow;
+      }
     }
-  }
 
-  runApp(
-    const ProviderScope(
-      child: MyApp(),
-    ),
-  );
+    if (!isDemoMode) {
+      // 落ちたことに気づけないと直しようがないため、まず通報経路を作る。
+      FlutterError.onError =
+          FirebaseCrashlytics.instance.recordFlutterFatalError;
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+      await FirebaseCrashlytics.instance
+          .setCrashlyticsCollectionEnabled(kReleaseMode);
+    }
+
+    // Initialize RevenueCat (skip in demo mode)
+    if (!isDemoMode) {
+      try {
+        await SubscriptionService.init();
+      } catch (e) {
+        debugPrint('RevenueCat initialization failed: $e');
+      }
+    }
+
+    runApp(
+      const ProviderScope(
+        child: MyApp(),
+      ),
+    );
+  }, (error, stack) {
+    if (isDemoMode) {
+      debugPrint('Uncaught error: $error');
+      return;
+    }
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+  });
 }
 
 class MyApp extends ConsumerWidget {
@@ -46,7 +76,7 @@ class MyApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'tryroop campus live',
+      title: 'TryRoop Campus Live',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

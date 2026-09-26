@@ -12,14 +12,15 @@ class BadgesScreen extends ConsumerWidget {
     final userStatsAsync = ref.watch(userStatsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('バッジ図鑑'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('バッジ図鑑'), centerTitle: true),
       body: allBadgesAsync.when(
         data: (allBadges) {
           final earnedBadgeIds = userStatsAsync.value?.badgeIds ?? [];
-          final progress = earnedBadgeIds.length / allBadges.length;
+          // バッジが 1 件も登録されていないと 0 除算で NaN になり、
+          // 獲得率の表示と LinearProgressIndicator の両方が落ちる。
+          final progress = allBadges.isEmpty
+              ? 0.0
+              : earnedBadgeIds.length / allBadges.length;
           final percentage = (progress * 100).toInt();
 
           return CustomScrollView(
@@ -56,7 +57,10 @@ class BadgesScreen extends ConsumerWidget {
                                     ),
                                   ),
                                   const Padding(
-                                    padding: EdgeInsets.only(bottom: 6, left: 2),
+                                    padding: EdgeInsets.only(
+                                      bottom: 6,
+                                      left: 2,
+                                    ),
                                     child: Text(
                                       '%',
                                       style: TextStyle(
@@ -108,23 +112,23 @@ class BadgesScreen extends ConsumerWidget {
                 ),
               ),
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
                 sliver: SliverGrid(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final badge = allBadges[index];
-                      final isEarned = earnedBadgeIds.contains(badge.id);
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final badge = allBadges[index];
+                    final isEarned = earnedBadgeIds.contains(badge.id);
 
-                      return BadgeCard(
-                        badge: badge,
-                        isEarned: isEarned,
-                        onTap: () {
-                          _showBadgeDetailDialog(context, badge, isEarned);
-                        },
-                      );
-                    },
-                    childCount: allBadges.length,
-                  ),
+                    return BadgeCard(
+                      badge: badge,
+                      isEarned: isEarned,
+                      onTap: () {
+                        _showBadgeDetailDialog(context, badge, isEarned);
+                      },
+                    );
+                  }, childCount: allBadges.length),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     crossAxisSpacing: 16,
@@ -143,7 +147,11 @@ class BadgesScreen extends ConsumerWidget {
     );
   }
 
-  void _showBadgeDetailDialog(BuildContext context, dynamic badge, bool isEarned) {
+  void _showBadgeDetailDialog(
+    BuildContext context,
+    dynamic badge,
+    bool isEarned,
+  ) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -189,7 +197,9 @@ class BadgesScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                isEarned ? badge.description : 'このバッジはまだ獲得していません。\n条件を満たしてロックを解除しましょう！',
+                isEarned
+                    ? badge.description
+                    : 'このバッジはまだ獲得していません。\n条件を満たしてロックを解除しましょう！',
                 style: const TextStyle(
                   fontSize: 14,
                   color: Color(0xFF8C8681),
@@ -200,7 +210,10 @@ class BadgesScreen extends ConsumerWidget {
               const SizedBox(height: 24),
               if (isEarned)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.green.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(30),
