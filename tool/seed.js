@@ -26,10 +26,14 @@ const db = admin.firestore();
 const NOW = new Date().toISOString();
 
 const categories = [
-  { id: 'karate', data: { name: '空手', order: 1 } },
-  { id: 'workout', data: { name: '筋トレ', order: 2 } },
-  { id: 'health', data: { name: '健康', order: 3 } },
-  { id: 'ai', data: { name: 'AI', order: 4 } },
+  // 事業計画の3ジャンルを先頭に。空手・健康・AI は既存レッスンが
+  // 紐づいているので残す。
+  { id: 'workout', data: { name: '筋トレ', order: 1 } },
+  { id: 'boxing', data: { name: 'ボクササイズ', order: 2 } },
+  { id: 'korean', data: { name: '韓国語', order: 3 } },
+  { id: 'karate', data: { name: '空手', order: 4 } },
+  { id: 'health', data: { name: '健康', order: 5 } },
+  { id: 'ai', data: { name: 'AI', order: 6 } },
 ];
 
 const videos = [
@@ -366,9 +370,9 @@ const announcements = [
   {
     id: 'announcement_welcome',
     data: {
-      title: 'TryRoop Campus Live へようこそ',
+      title: 'Try Loop へようこそ',
       content:
-        'TryRoop Campus Live をご利用いただきありがとうございます。\n\n' +
+        'Try Loop をご利用いただきありがとうございます。\n\n' +
         '本アプリでは、空手・筋トレ・健康・AI など、暮らしに役立つ学習コンテンツをお届けします。' +
         '動画とテキストレッスンを組み合わせて、あなたのペースで学習を進めてください。\n\n' +
         '不具合のご報告やご意見は、プロフィール画面の「ヘルプ・お問い合わせ」からお寄せください。',
@@ -379,26 +383,9 @@ const announcements = [
   },
 ];
 
-const posts = [
-  {
-    id: 'post_welcome',
-    data: {
-      authorId: STAFF_UID,
-      authorName: STAFF_NAME,
-      authorPhotoUrl: null,
-      content:
-        'TryRoop Campus Live のコミュニティへようこそ！\n\n' +
-        'ここは、学んだことや気づきを共有したり、仲間と励まし合ったりする場所です。' +
-        '気軽に投稿・コメントしてください。',
-      imageUrls: [],
-      likeCount: 0,
-      commentCount: 0,
-      isPinned: true,
-      createdAt: NOW,
-      updatedAt: NOW,
-    },
-  },
-];
+// コミュニティの投稿は投入しない。作り物の投稿が並んでいると
+// 利用者にすぐ分かるため（審査のスクリーンショットにも写る）。
+const posts = [];
 
 async function writeCollection(name, items) {
   console.log(`\n→ ${name} (${items.length} docs)`);
