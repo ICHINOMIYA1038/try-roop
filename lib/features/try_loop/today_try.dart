@@ -36,6 +36,16 @@ class TodayTry {
         isNewGenre: isNewGenre,
       );
 
-  /// 「今日は15分ボクササイズに挑戦！」
-  String get invitation => '今日は$minutes分「$title」に挑戦！';
+  /// 「今日は「15分ボクササイズ」に挑戦！」
+  ///
+  /// 所要時間は別に出す。題名に「15分」が入っていることが多く、
+  /// 前に付けると「15分「15分ボクササイズ」」と重なるため。
+  String get invitation => '今日は「$title」に挑戦！';
+
+  /// 所要時間の表示。題名にすでに入っていれば出さない。
+  String? get durationLabel {
+    if (minutes <= 0) return null;
+    if (title.contains('$minutes分')) return null;
+    return '$minutes分';
+  }
 }

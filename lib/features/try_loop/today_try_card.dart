@@ -19,6 +19,10 @@ class TodayTryCard extends ConsumerWidget {
     final summary = ref.watch(trySummaryProvider);
     final done = summary.doneToday;
 
+    // 今日のTRYがLIVEのときは、すぐ上のバナーと同じ内容になる。
+    // 二重に見せず、実績だけを出す。
+    final duplicateOfBanner = today.isLive;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -37,7 +41,9 @@ class TodayTryCard extends ConsumerWidget {
             Row(
               children: [
                 Text(
-                  done ? '本日のTRY 完了' : '今日のTRY',
+                  done
+                      ? '本日のTRY 完了'
+                      : (duplicateOfBanner ? 'あなたのTRY' : '今日のTRY'),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -77,16 +83,35 @@ class TodayTryCard extends ConsumerWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 10),
-            Text(
-              done ? 'おつかれさまでした。' : today.invitation,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF433D39),
-                height: 1.4,
+            if (!duplicateOfBanner) ...[
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      done ? 'おつかれさまでした。' : today.invitation,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF433D39),
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  if (!done && today.durationLabel != null) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      today.durationLabel!,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF8C8681),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            ),
+            ],
             const SizedBox(height: 14),
             Row(
               children: [
@@ -98,12 +123,11 @@ class TodayTryCard extends ConsumerWidget {
                   ),
                 ),
                 const Spacer(),
-                TextButton(
-                  onPressed: () => today.isLive
-                      ? context.push('/live')
-                      : context.push('/video/${today.targetId}'),
-                  child: Text(done ? 'もう1回やる' : 'はじめる'),
-                ),
+                if (!duplicateOfBanner)
+                  TextButton(
+                    onPressed: () => context.push('/video/${today.targetId}'),
+                    child: Text(done ? 'もう1回やる' : 'はじめる'),
+                  ),
               ],
             ),
           ],
