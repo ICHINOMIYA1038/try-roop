@@ -1,0 +1,20 @@
+// try-roop.com を配信する Cloudflare Workers の設定。
+// `next build` の静的出力（site/out）をそのまま配る。
+// 同じ内容を Firebase Hosting（try-roop.web.app）にも出している。
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "try-roop-web",
+	"compatibility_date": "2026-05-03",
+	"routes": [
+		{ "pattern": "try-roop.com/*", "zone_name": "try-roop.com" },
+		{ "pattern": "www.try-roop.com/*", "zone_name": "try-roop.com" }
+	],
+	"assets": {
+		"directory": "./out",
+		"html_handling": "auto-trailing-slash",
+		"not_found_handling": "404-page"
+	},
+	"observability": {
+		"enabled": true
+	}
+}

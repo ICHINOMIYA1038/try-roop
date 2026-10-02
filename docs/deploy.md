@@ -46,7 +46,16 @@ App Store へのリンクを追加した。いままでサイトからアプリ�
 ```sh
 cd /Users/ichinomiya/private/try-roop
 firebase deploy --only hosting --project try-roop
+cd site && wrangler deploy   # try-roop.com（Cloudflare Workers）にも同じ内容を出す
 ```
+
+サイトは2か所から配信している。`try-roop.web.app` は Firebase Hosting、
+`try-roop.com` は Cloudflare Workers（`site/wrangler.jsonc`）。片方だけ
+出すと、もう片方が古いまま残る。`wrangler` は try-roop.com を持っている
+個人の Cloudflare アカウントでログインしておくこと。
+
+管理画面の Google ログインは `try-roop.web.app/admin/` でしか通らない。
+Firebase Authentication の承認済みドメインに `try-roop.com` が無いため。
 
 ## 4. App Store Connect：課金アイテムの作成
 

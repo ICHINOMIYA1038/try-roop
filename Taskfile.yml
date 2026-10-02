@@ -93,9 +93,10 @@ tasks:
       - npm run build
 
   web:deploy:
-    desc: LP を Firebase Hosting へデプロイ
+    desc: LP を Firebase Hosting (try-roop.web.app) と Cloudflare (try-roop.com) へデプロイ
     cmds:
       - firebase deploy --only hosting
+      - cd site && wrangler deploy
 
   web:install:
     desc: LP の npm 依存をインストール
