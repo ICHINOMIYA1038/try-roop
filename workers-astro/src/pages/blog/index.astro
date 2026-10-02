@@ -1,0 +1,55 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+<Base title="ブログ">
+<style>
+.blog-header{padding:80px 28px 48px;text-align:center}
+.blog-header h1{
+  font-family:'Klee One','Zen Maru Gothic',serif;
+  font-size:1.75rem;font-weight:600;
+}
+.blog-header .deco{display:inline-block;width:40px;height:3px;background:linear-gradient(90deg,var(--brand),var(--accent));border-radius:2px;margin-top:12px}
+.blog-header p{margin-top:12px;color:var(--text-muted);font-size:0.9rem}
+.post-list{max-width:720px;margin:0 auto;padding:0 28px 80px;display:flex;flex-direction:column;gap:16px}
+.post-card{
+  display:block;border:1px solid var(--border);border-radius:20px;
+  padding:28px;background:var(--card);
+  transition:transform 0.25s,box-shadow 0.25s;
+}
+.post-card:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,0,0,0.06)}
+.post-card h2{font-size:1.0625rem;font-weight:700}
+.post-card .desc{margin-top:8px;font-size:0.8125rem;color:var(--text-muted);line-height:1.8}
+.post-meta{margin-top:14px;font-size:0.75rem;color:var(--text-muted);display:flex;gap:10px;align-items:center}
+.tag{
+  background:var(--accent-light);color:var(--accent);
+  padding:2px 10px;border-radius:999px;font-size:0.6875rem;font-weight:500;
+}
+.empty{text-align:center;padding:80px 28px;color:var(--text-muted);font-size:0.9rem}
+</style>
+
+<section class="blog-header">
+  <h1>ブログ</h1>
+  <span class="deco"></span>
+  <p>空手・筋トレ・健康・AI に関する記事をお届けします</p>
+</section>
+
+{posts.length > 0 ? (
+  <div class="post-list">
+    {posts.map((post) => (
+      <a href={`/blog/${post.id}`} class="post-card">
+        <h2>{post.data.title}</h2>
+        <p class="desc">{post.data.description}</p>
+        <div class="post-meta">
+          <time>{post.data.date.toLocaleDateString('ja-JP')}</time>
+          {post.data.tags.map((tag: string) => <span class="tag">{tag}</span>)}
+        </div>
+      </a>
+    ))}
+  </div>
+) : (
+  <p class="empty">まだ記事がありません。近日公開予定です。</p>
+)}
+</Base>

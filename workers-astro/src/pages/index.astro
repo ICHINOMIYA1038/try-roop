@@ -1,0 +1,384 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="学びを、自分のペースで。">
+<style>
+/* ───── Hero ───── */
+.hero{
+  position:relative;
+  text-align:center;
+  padding:100px 28px 80px;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;top:-60px;right:-80px;
+  width:280px;height:280px;
+  background:radial-gradient(circle,rgba(232,131,74,0.12) 0%,transparent 70%);
+  border-radius:50%;
+  pointer-events:none;
+}
+.hero::after{
+  content:'';position:absolute;bottom:-40px;left:-60px;
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(91,154,139,0.1) 0%,transparent 70%);
+  border-radius:50%;
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--brand-light);color:var(--brand-dark);
+  font-size:0.8125rem;font-weight:500;
+  padding:6px 16px;border-radius:999px;
+  margin-bottom:24px;
+}
+.hero-badge .dot{width:6px;height:6px;background:var(--brand);border-radius:50%}
+.hero h1{
+  font-family:'Klee One','Zen Maru Gothic',serif;
+  font-size:clamp(1.75rem,5vw,3.25rem);
+  font-weight:600;
+  letter-spacing:0.02em;
+  line-height:1.4;
+}
+.hero h1 .highlight{
+  background:linear-gradient(transparent 60%,rgba(232,131,74,0.2) 60%);
+  padding:0 4px;
+}
+.hero-sub{
+  margin-top:20px;max-width:520px;margin-inline:auto;
+  font-size:1rem;color:var(--text-muted);line-height:2;
+}
+.hero-cta{
+  margin-top:36px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+}
+.pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 28px;border-radius:999px;
+  font-weight:500;font-size:0.875rem;border:none;
+  transition:all 0.25s;cursor:pointer;
+}
+.pill-soon{
+  background:var(--bg-warm);color:var(--text-muted);cursor:default;
+}
+.pill-soon .soon-tag{
+  font-size:0.6875rem;background:var(--card);
+  padding:2px 8px;border-radius:999px;
+}
+.hero-img{
+  margin-top:48px;
+  max-width:720px;
+  margin-inline:auto;
+}
+.hero-img img{
+  width:100%;height:auto;
+  border-radius:24px;
+  box-shadow:0 12px 48px rgba(61,54,50,0.1);
+}
+
+/* ───── Wave ───── */
+.wave-section{
+  background:var(--card);
+  position:relative;
+}
+.wave-top{
+  position:absolute;top:-39px;left:0;right:0;
+  overflow:hidden;line-height:0;
+}
+.wave-top svg{display:block;width:100%;height:40px}
+.wave-bottom{
+  position:absolute;bottom:-39px;left:0;right:0;
+  overflow:hidden;line-height:0;transform:scaleY(-1);
+}
+.wave-bottom svg{display:block;width:100%;height:40px}
+
+/* ───── Features ───── */
+.features{
+  background:var(--card);
+  padding:80px 0 100px;
+  position:relative;
+}
+.section-head{text-align:center;margin-bottom:56px}
+.section-head h2{
+  font-family:'Klee One','Zen Maru Gothic',serif;
+  font-size:1.75rem;font-weight:600;
+}
+.section-head .deco{
+  display:inline-block;width:40px;height:3px;
+  background:linear-gradient(90deg,var(--brand),var(--accent));
+  border-radius:2px;margin-top:12px;
+}
+.section-head p{margin-top:12px;color:var(--text-muted);font-size:0.9rem}
+.feat-grid{
+  display:grid;gap:20px;
+  grid-template-columns:1fr;
+}
+@media(min-width:640px){.feat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:900px){.feat-grid{grid-template-columns:repeat(4,1fr)}}
+.feat{
+  padding:28px 24px;
+  border-radius:20px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  position:relative;
+  overflow:hidden;
+  transition:transform 0.25s,box-shadow 0.25s;
+}
+.feat:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.feat-icon{
+  width:48px;height:48px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;
+}
+.feat-icon.v{background:#fff3e0}
+.feat-icon.t{background:#e8f5e9}
+.feat-icon.c{background:#e3f2fd}
+.feat-icon.b{background:#fce4ec}
+.feat h3{margin-top:16px;font-size:0.9375rem;font-weight:700}
+.feat p{margin-top:8px;font-size:0.8125rem;color:var(--text-muted);line-height:1.8}
+
+/* ───── Categories ───── */
+.categories{padding:100px 0 80px}
+.cat-grid{
+  display:grid;gap:16px;
+  grid-template-columns:repeat(2,1fr);
+}
+@media(min-width:768px){.cat-grid{grid-template-columns:repeat(4,1fr)}}
+.cat{
+  background:var(--card);
+  border-radius:24px;
+  padding:32px 20px;
+  text-align:center;
+  border:1px solid var(--border);
+  transition:transform 0.25s,box-shadow 0.25s;
+  position:relative;
+}
+.cat:hover{transform:translateY(-4px);box-shadow:0 8px 32px rgba(0,0,0,0.06)}
+.cat-img{
+  width:100%;height:auto;
+  border-radius:16px;
+  aspect-ratio:1;
+  object-fit:cover;
+}
+.cat h3{margin-top:14px;font-size:1rem;font-weight:700}
+.cat p{margin-top:4px;font-size:0.75rem;color:var(--text-muted)}
+.cat .cat-tag{
+  display:inline-block;margin-top:12px;
+  font-size:0.6875rem;color:var(--accent);
+  background:var(--accent-light);
+  padding:3px 10px;border-radius:999px;
+}
+
+/* ───── Plans ───── */
+.plans{
+  background:var(--bg-warm);padding:100px 0;
+  position:relative;
+}
+.plan-grid{
+  display:grid;gap:20px;
+  grid-template-columns:1fr;
+  max-width:640px;margin:0 auto;
+}
+@media(min-width:640px){.plan-grid{grid-template-columns:repeat(2,1fr)}}
+.plan{
+  border-radius:24px;padding:36px 28px;
+  background:var(--card);
+  border:2px solid transparent;
+  position:relative;
+  transition:transform 0.25s;
+}
+.plan:hover{transform:translateY(-3px)}
+.plan.best{border-color:var(--brand)}
+.plan-tag{
+  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,var(--brand),#f0a06a);
+  color:#fff;font-size:0.75rem;font-weight:700;
+  padding:5px 16px;border-radius:999px;
+  box-shadow:0 3px 12px rgba(232,131,74,0.3);
+}
+.plan h3{font-size:1.125rem;font-weight:700}
+.plan .plan-sub{margin-top:6px;font-size:0.8125rem;color:var(--text-muted)}
+.plan ul{
+  margin-top:20px;list-style:none;
+  display:flex;flex-direction:column;gap:10px;
+  font-size:0.8125rem;color:var(--text-muted);
+}
+.plan ul li::before{content:'✓ ';color:var(--accent);font-weight:700}
+.plan .plan-note{margin-top:16px;font-size:0.6875rem;color:var(--text-muted);font-style:italic}
+
+/* ───── Contact ───── */
+.contact{text-align:center;padding:100px 28px 80px}
+.contact h2{
+  font-family:'Klee One','Zen Maru Gothic',serif;
+  font-size:1.75rem;font-weight:600;
+}
+.contact p{margin-top:16px;color:var(--text-muted);font-size:0.9rem}
+.contact-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  margin-top:28px;
+  padding:14px 32px;border-radius:999px;
+  background:linear-gradient(135deg,var(--brand),#f0a06a);
+  color:#fff;font-weight:600;font-size:0.875rem;
+  box-shadow:0 4px 20px rgba(232,131,74,0.25);
+  transition:transform 0.2s,box-shadow 0.2s;
+  border:none;cursor:pointer;
+}
+.contact-btn:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(232,131,74,0.35)}
+.contact-links{
+  margin-top:28px;font-size:0.8125rem;color:var(--text-muted);
+}
+.contact-links a{text-decoration:underline;text-underline-offset:3px}
+.contact-links a:hover{color:var(--brand)}
+</style>
+
+<main>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge"><span class="dot"></span>まもなくリリース</div>
+      <h1>学びを、<span class="highlight">自分のペース</span>で。</h1>
+      <p class="hero-sub">
+        空手・筋トレ・健康・AI ——<br>
+        動画もテキストも、いつでもどこでも。<br>
+        あなたの「やってみたい」を応援するアプリです。
+      </p>
+      <div class="hero-cta">
+        <button class="pill pill-soon" disabled>
+          🍎 App Store <span class="soon-tag">準備中</span>
+        </button>
+        <button class="pill pill-soon" disabled>
+          ▶ Google Play <span class="soon-tag">準備中</span>
+        </button>
+      </div>
+      <div class="hero-img">
+        <img src="/images/hero-lg.jpg" alt="空手・筋トレ・健康・AIをみんなで学ぶ様子" width="1400" height="788" loading="eager">
+      </div>
+    </div>
+  </section>
+
+  <!-- Wave + Features -->
+  <section class="features wave-section">
+    <div class="wave-top">
+      <svg viewBox="0 0 1200 40" preserveAspectRatio="none">
+        <path d="M0,40 C300,0 900,0 1200,40 L1200,40 L0,40 Z" fill="var(--card)"/>
+      </svg>
+    </div>
+    <div class="container">
+      <div class="section-head">
+        <h2>できること</h2>
+        <span class="deco"></span>
+        <p>シンプルだけど、しっかり学べる</p>
+      </div>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-icon v">▶</div>
+          <h3>動画レッスン</h3>
+          <p>プロ監修の動画で、正しいフォームを何度でも。通勤中や寝る前、5分から始められます。</p>
+        </div>
+        <div class="feat">
+          <div class="feat-icon t">📖</div>
+          <h3>テキストレッスン</h3>
+          <p>図解つきの丁寧な解説。動画と合わせて読むと、理解がぐっと深まります。</p>
+        </div>
+        <div class="feat">
+          <div class="feat-icon c">💬</div>
+          <h3>コミュニティ</h3>
+          <p>「今日やったこと」を投稿して仲間とシェア。一人じゃないから続けられる。</p>
+        </div>
+        <div class="feat">
+          <div class="feat-icon b">🏆</div>
+          <h3>バッジ</h3>
+          <p>動画を見た数、連続日数、コース完了…。がんばりが目に見えるとうれしい。</p>
+        </div>
+      </div>
+    </div>
+    <div class="wave-bottom">
+      <svg viewBox="0 0 1200 40" preserveAspectRatio="none">
+        <path d="M0,40 C300,0 900,0 1200,40 L1200,40 L0,40 Z" fill="var(--card)"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="categories">
+    <div class="container">
+      <div class="section-head">
+        <h2>学べるジャンル</h2>
+        <span class="deco"></span>
+        <p>興味のあるところから、自由に</p>
+      </div>
+      <div class="cat-grid">
+        <div class="cat">
+          <img src="/images/cat-karate-sm.jpg" alt="空手" class="cat-img" width="800" height="800" loading="lazy">
+          <h3>空手</h3>
+          <p>基本姿勢から技まで段階的に</p>
+          <span class="cat-tag">初心者歓迎</span>
+        </div>
+        <div class="cat">
+          <img src="/images/cat-fitness-sm.jpg" alt="筋トレ" class="cat-img" width="800" height="800" loading="lazy">
+          <h3>筋トレ</h3>
+          <p>自重トレーニング・部位別メニュー</p>
+          <span class="cat-tag">器具なしOK</span>
+        </div>
+        <div class="cat">
+          <img src="/images/cat-health-sm.jpg" alt="健康" class="cat-img" width="800" height="800" loading="lazy">
+          <h3>健康</h3>
+          <p>睡眠改善・ストレス管理</p>
+          <span class="cat-tag">毎日の習慣に</span>
+        </div>
+        <div class="cat">
+          <img src="/images/cat-ai-sm.jpg" alt="AI" class="cat-img" width="800" height="800" loading="lazy">
+          <h3>AI</h3>
+          <p>ChatGPTの活用・プロンプト設計</p>
+          <span class="cat-tag">話題のスキル</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Plans -->
+  <section class="plans">
+    <div class="container">
+      <div class="section-head">
+        <h2>料金プラン</h2>
+        <span class="deco"></span>
+        <p>まずは無料で始めてみてください</p>
+      </div>
+      <div class="plan-grid">
+        <div class="plan">
+          <h3>無料プラン</h3>
+          <p class="plan-sub">ずっと無料、気軽にスタート</p>
+          <ul>
+            <li>一部の動画とテキストレッスン</li>
+            <li>コミュニティ閲覧・投稿</li>
+            <li>バッジ獲得</li>
+          </ul>
+        </div>
+        <div class="plan best">
+          <span class="plan-tag">おすすめ</span>
+          <h3>プレミアムプラン</h3>
+          <p class="plan-sub">すべてのコンテンツが見放題</p>
+          <ul>
+            <li>プレミアム動画・レッスンが見放題</li>
+            <li>限定ライブ配信</li>
+            <li>無料プランの全機能</li>
+          </ul>
+          <p class="plan-note">※ 料金はアプリ内でご確認ください</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="contact">
+    <h2>なにかあれば、気軽にどうぞ</h2>
+    <p>ご質問やご要望、不具合のご報告など、<br>メールでお待ちしています。</p>
+    <a href="mailto:support@try-roop.com" class="contact-btn">
+      ✉ support@try-roop.com
+    </a>
+    <p class="contact-links">
+      <a href="/privacy">プライバシーポリシー</a>
+      <span style="margin:0 8px;opacity:0.3">|</span>
+      <a href="/terms">利用規約</a>
+    </p>
+  </section>
+</main>
+</Base>
