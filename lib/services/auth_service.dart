@@ -3,12 +3,16 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  // prepareDeleteAccount で受け取り、deleteAccount で Apple のトークンを取り消すのに使う。
+  String? _appleAuthorizationCode;
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
@@ -62,6 +66,17 @@ class AuthService {
     final user = _auth.currentUser;
     if (user == null) return;
 
+    final code = _appleAuthorizationCode;
+    _appleAuthorizationCode = null;
+    if (code != null) {
+      // 取り消せなくても退会は止めない（データはもう消えている）。
+      try {
+        await _auth.revokeTokenWithAuthorizationCode(code);
+      } catch (e) {
+        debugPrint('Apple token revoke failed: $e');
+      }
+    }
+
     try {
       await user.delete();
     } on FirebaseAuthException catch (e) {
@@ -69,6 +84,40 @@ class AuthService {
       await reauthenticate();
       await _auth.currentUser?.delete();
     }
+  }
+
+  /// 退会の前、データを消す前に呼ぶ。
+  ///
+  /// Apple でログインしている人には、もう一度 Apple で確認してもらう。
+  /// 退会時に Apple のトークンを取り消すには新しい認可コードが要るため
+  /// (App Store Review Guideline 5.1.1(v))。あわせて再認証にもなる。
+  /// ここで中止されても何も消えないよう、データを消す前に済ませる。
+  Future<void> prepareDeleteAccount() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    if (!user.providerData.any((p) => p.providerId == 'apple.com')) return;
+
+    final rawNonce = _generateNonce();
+    final AuthorizationCredentialAppleID appleCredential;
+    try {
+      appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [AppleIDAuthorizationScopes.email],
+        nonce: _sha256ofString(rawNonce),
+      );
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code != AuthorizationErrorCode.canceled) rethrow;
+      throw FirebaseAuthException(
+        code: 'reauth-cancelled',
+        message: '確認のためのログインが中止されました',
+      );
+    }
+    await user.reauthenticateWithCredential(
+      OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        rawNonce: rawNonce,
+      ),
+    );
+    _appleAuthorizationCode = appleCredential.authorizationCode;
   }
 
   /// いま使っているログイン方法でもう一度認証する。
