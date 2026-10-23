@@ -74,6 +74,8 @@ class ProfileScreen extends ConsumerWidget {
     if (uid == null) return;
 
     try {
+      // Apple の確認は、データを消す前に済ませる（中止されたら何も消さない）。
+      await ref.read(authServiceProvider).prepareDeleteAccount();
       // 先に Firestore 側を消す。認証を消してしまうと権限が無くなり、
       // 表示名や投稿が残ったままになる。
       await ref.read(firestoreServiceProvider).deleteUserData(uid);
